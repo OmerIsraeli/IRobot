@@ -2,8 +2,9 @@ import time
 import serial
 import keyboard
 
-ser = serial.Serial('COM3', 9600)
-STOP = '0'
+ser = serial.Serial('COM9', 115200)
+STOP = '1'
+PAUSE= 'p'
 
 LEDS = 't'
 flag = False
@@ -19,6 +20,8 @@ def car_move():
             move('a')
         if keyboard.is_pressed('d'):
             move('d')
+        if keyboard.is_pressed('p'):
+            move('p')
         if keyboard.is_pressed(STOP):
             time.sleep(0.7)
             ser.write(STOP.encode('utf-8'))
@@ -30,7 +33,8 @@ def move(key):
         if not key_was_pressed:
             ser.write(key.encode('utf-8'))
             key_was_pressed = True
-    ser.write(STOP.encode('utf-8'))
+        print(key)
+    ser.write(PAUSE.encode('utf-8'))
 
 
 # def control_led():
@@ -46,3 +50,4 @@ def move(key):
 
 if __name__ == '__main__':
     car_move()
+
