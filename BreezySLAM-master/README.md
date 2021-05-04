@@ -1,11 +1,11 @@
-BreezySLAM
+FOBreezySLAM
 ==========
 
 <img src="breezyslam.png" align="center" width=700>
 
 <p><p><p>
     
-<a href="https://github.com/simondlevy/BreezySLAM">This repository</a> contains everything you need to
+<a href="https://github.cof/simondlevy/BreezySLAM">This repository</a> contains everything you need to
 start working with 
 <a href="http://en.wikipedia.org/wiki/Lidar">Lidar</a>
 -based
