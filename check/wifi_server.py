@@ -4,10 +4,18 @@ import pickle
 
 from breezyslam.algorithms import RMHC_SLAM
 from breezyslam.sensors import RPLidarA1 as LaserModel
+import numpy as np
+
+
+
+
+
 #from roboviz import MapVisualizer
 
 localIP = "132.64.143.201"
+localIP_IMG = "127.0.0.1"
 localPort = 20001
+localPort_IMG = 1337
 bufferSize = 4096
 msgFromServer = "Hello UDP Client"
 bytesToSend = str.encode(msgFromServer)
@@ -35,6 +43,19 @@ SCAN_TYPE = 129
 # Screen width & height
 W = 640
 H = 480
+
+
+def b2img(mapbytes, pixels = MAP_SIZE_PIXELS):
+    map = np.zeros((pixels, pixels))
+    for i in range(pixels):
+        for j in range(pixels):
+            map[i][j] = mapbytes[i * pixels + j]
+    return map
+
+def send_img(img):
+    UDPServerSocket_IMG = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+    UDPServerSocket_IMG.sendto(img, (localIP_IMG,localPort_IMG))
+
 
 
 def _process_scan(raw):
@@ -76,6 +97,7 @@ if __name__ == '__main__':
     # We will use these to store previous scan in case current scan is inadequate
     previous_distances = None
     previous_angles    = None
+    start = time.time()
     while True:
         bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
         message = bytesAddressPair[0]
@@ -87,10 +109,11 @@ if __name__ == '__main__':
         #print(decoded_msg)
         # scan_data = [0] * 360
         # Update SLAM with current Lidar scan and scan angles if adequate
-        if len(data_arr) > MIN_SAMPLES:
+        if len(data_arr[0]) > MIN_SAMPLES:
             #print("wowwwww")
             distances=[item[0] for item in data_arr]
-            angles = [ item[1] for item in data_arr]
+            angles = [item[1] for item in data_arr]
+            #print("distances: ",distances,"\n angles: ",angles,"\n")
             slam.update(distances, scan_angles_degrees=angles)
             previous_distances = distances.copy()
             previous_angles = angles.copy()
@@ -104,12 +127,22 @@ if __name__ == '__main__':
 
         # Get current map bytes as grayscale
         slam.getmap(mapbytes)
-        print(mapbytes)
+        #print(mapbytes)
+        for byte in mapbytes:
+            if byte != 127:
+                print("erez")
+        img=b2img(mapbytes,MAP_SIZE_PIXELS)
+        if(time.time()-start>2):
+            send_img(img)
+            start = time.time()
+
+
+
 
         # Display map and robot pose, exiting gracefully if user closes it
         # if not viz.display(x / 1000., y / 1000., theta, mapbytes):
         #     exit(0)
-        start=time.time()
+        #start=time.time()
 
     # while True:
     #
