@@ -13,10 +13,10 @@ import numpy as np
 
 #from roboviz import MapVisualizer
 
-localIP = "132.64.143.249"
+localIP = "132.64.143.30"
 localIP_IMG = "127.0.0.1"
 localPort = 20001
-localPort_IMG = 1337
+
 bufferSize = 4096
 msgFromServer = "Hello UDP Client"
 bytesToSend = str.encode(msgFromServer)
@@ -81,10 +81,8 @@ if __name__ == '__main__':
 
     # Create an RMHC SLAM object with a laser model and optional robot model
     slam = RMHC_SLAM(LaserModel(), MAP_SIZE_PIXELS, MAP_SIZE_METERS)
-
     # Set up a SLAM display
     viz = MapVisualizer(MAP_SIZE_PIXELS, MAP_SIZE_METERS, 'SLAM')
-
     # Initialize an empty trajectory
     trajectory = []
 
@@ -100,24 +98,30 @@ if __name__ == '__main__':
     previous_angles    = None
     start = time.time()
     while True:
-        size = int(UDPServerSocket.recv(9))
+        # size = int(UDPServerSocket.recv(6))
+        # print(size)
         array = np.array([])
-        while size > len(array):
-            bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
-            message = bytesAddressPair[0]
-            address = bytesAddressPair[1]
-            temp = np.frombuffer(np.array(message),dtype=np.int8)
-            array = np.concatenate([array, np.reshape(array, newshape=(array/3, 3))])
+        # while size > len(array):
+        message_full = UDPServerSocket.recvfrom(bufferSize)
+        message = message_full[0]
+        address = message_full[1]
+        print(message)
+        temp = np.frombuffer(np.array(message),dtype=np.float64)
+        #print(temp)
+        array = np.reshape(temp,(-1, 2))
+        print(array)
 
 
         #clientMsg = "Message from Client:{}".format(message)
         #print(decoded_msg)
         # scan_data = [0] * 360
         # Update SLAM with current Lidar scan and scan angles if adequate
-        if len(array[0]) > MIN_SAMPLES:
+        if len(array) > MIN_SAMPLES:
             #print("wowwwww")
-            distances=[item[0] for item in array]
-            angles = [item[1] for item in array]
+            distances=[item[1] for item in array]
+            angles = [item[0] for item in array]
+            # istances = array[0]
+            # angles = array[1]
             #print("distances: ",distances,"\n angles: ",angles,"\n")
             slam.update(distances, scan_angles_degrees=angles)
             previous_distances = distances.copy()
