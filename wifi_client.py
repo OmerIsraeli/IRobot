@@ -1,11 +1,12 @@
 import socket
 import time
+import pickle
 
 address = "127.0.0.1"
 msgFromClient = "Hello UDP Server"
 bytesToSend = str.encode(msgFromClient)
 serverAddressPort = (address, 20001)
-bufferSize = 1024
+bufferSize = 4096
 # Create a UDP socket at client side
 UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 # Send to server using created UDP socket
@@ -39,21 +40,21 @@ def process_data(data):
 
 
 def sent_data(distances, angles):
-    concat_dist_angles(distances, angles)
-    UDPClientSocket.sendto(bytesToSend, serverAddressPort)
+    data=concat_dist_angles(distances, angles)
+    UDPClientSocket.sendto(data, serverAddressPort)
     # print(i)
     # i += 1
 
 
 def main():
     try:
-        print(lidar.get_info())
+        #print(lidar.get_info())
         for scan in lidar.iter_scans():
             #     for (_, angle, distance) in scan:
             #         scan_data[min([359, floor(angle)])] = distance
             #     process_data(scan_data)
-            distances = [item[2] for item in scan]
-            angles = [item[1] for item in scan]
+            distances = [item[2] for item in scan][0:20]
+            angles = [item[1] for item in scan][0:20]
             sent_data(distances, angles)
     except KeyboardInterrupt:
         print('Stopping.')
@@ -62,9 +63,9 @@ def main():
 
 
 def concat_dist_angles(distances, angles):
-    distances_bytes = bytearray(distances)
-    angles_bytes = bytearray(angles)
-    return distances_bytes + str.encode("$") + angles_bytes
+    arr = (distances,angles)
+    data_string = pickle.dumps(arr)
+    return data_string
 
 
 if __name__ == '__main__':

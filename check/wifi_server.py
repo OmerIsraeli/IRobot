@@ -4,6 +4,7 @@ import pickle
 
 from breezyslam.algorithms import RMHC_SLAM
 from breezyslam.sensors import RPLidarA1 as LaserModel
+from roboviz import MapVisualizer
 import numpy as np
 
 
@@ -12,7 +13,7 @@ import numpy as np
 
 #from roboviz import MapVisualizer
 
-localIP = "132.64.143.201"
+localIP = "132.64.143.249"
 localIP_IMG = "127.0.0.1"
 localPort = 20001
 localPort_IMG = 1337
@@ -82,7 +83,7 @@ if __name__ == '__main__':
     slam = RMHC_SLAM(LaserModel(), MAP_SIZE_PIXELS, MAP_SIZE_METERS)
 
     # Set up a SLAM display
-    #viz = MapVisualizer(MAP_SIZE_PIXELS, MAP_SIZE_METERS, 'SLAM')
+    viz = MapVisualizer(MAP_SIZE_PIXELS, MAP_SIZE_METERS, 'SLAM')
 
     # Initialize an empty trajectory
     trajectory = []
@@ -128,20 +129,17 @@ if __name__ == '__main__':
         # Get current map bytes as grayscale
         slam.getmap(mapbytes)
         #print(mapbytes)
-        for byte in mapbytes:
-            if byte != 127:
-                print("erez")
+        # for byte in mapbytes:
+        #     if byte != 127:
+        #         #print("erez")
         img=b2img(mapbytes,MAP_SIZE_PIXELS)
-        if(time.time()-start>2):
-            send_img(img)
-            start = time.time()
-
-
-
+        # if(time.time()-start>2):
+        #     send_img(img)
+        #     start = time.time()
 
         # Display map and robot pose, exiting gracefully if user closes it
-        # if not viz.display(x / 1000., y / 1000., theta, mapbytes):
-        #     exit(0)
+        if not viz.display(x / 1000., y / 1000., theta, mapbytes):
+            exit(0)
         #start=time.time()
 
     # while True:

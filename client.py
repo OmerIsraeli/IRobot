@@ -1,7 +1,7 @@
 import os
 from math import cos, sin, pi, floor
 import pygame
-from adafruit_circuitpython_rplidar  import RPLidar as Lidar
+from adafruit_rplidar import RPLidar as Lidar
 import time
 
 # Set up pygame and the display
@@ -13,8 +13,8 @@ lcd.fill((0, 0, 0))
 pygame.display.update()
 
 # Setup the RPLidar
-PORT_NAME = 'COM6'
-lidar = Lidar(None, PORT_NAME)
+LIDAR_DEVICE = '/dev/ttyUSB0'
+lidar = Lidar(None, LIDAR_DEVICE)
 # used to scale data to fit on the screen
 max_distance = 0
 scan_data = [0] * 360
@@ -32,13 +32,14 @@ def sent_data(distances, angles):
 def main():
 
     try:
-        print(lidar.get_info())
+        #print(lidar.get_info())
         for scan in lidar.iter_scans():
         #     for (_, angle, distance) in scan:
         #         scan_data[min([359, floor(angle)])] = distance
         #     process_data(scan_data)
             distances = [item[2] for item in scan]
             angles = [item[1] for item in scan]
+            print(distances)
             sent_data(distances,angles)
     except KeyboardInterrupt:
         print('Stopping.')

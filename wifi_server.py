@@ -2,7 +2,7 @@ import socket
 
 localIP = "127.0.0.1"
 localPort = 20001
-bufferSize = 1024
+bufferSize = 4096
 msgFromServer = "Hello UDP Client"
 bytesToSend = str.encode(msgFromServer)
 # Create a datagram socket
@@ -12,6 +12,7 @@ UDPServerSocket.bind((localIP, localPort))
 print("UDP server up and listening")
 # Listen for incoming datagrams
 import time
+import pickle
 
 from breezyslam.algorithms import RMHC_SLAM
 from breezyslam.sensors import RPLidarA1 as LaserModel
@@ -78,34 +79,34 @@ if __name__ == '__main__':
         bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
         message = bytesAddressPair[0]
         address = bytesAddressPair[1]
-        decoded_msg = message.decode('utf-8')
+        decoded_msg = data_arr = pickle.loads(message)
 
 
-        clientMsg = "Message from Client:{}".format(message)
-        print(clientMsg)
-        scan_data = [0] * 360
-        # Update SLAM with current Lidar scan and scan angles if adequate
-        if len(distances) > MIN_SAMPLES:
-            #print("wowwwww")
-            slam.update(distances, scan_angles_degrees=angles)
-            previous_distances = distances.copy()
-            previous_angles = angles.copy()
-
-        # If not adequate, use previous
-        elif previous_distances is not None:
-            slam.update(previous_distances, scan_angles_degrees=previous_angles)
-
-        # Get current robot position
-        x, y, theta = slam.getpos()
-
-        # Get current map bytes as grayscale
-        slam.getmap(mapbytes)
-        #print(mapbytes)
-
-        # Display map and robot pose, exiting gracefully if user closes it
-        if not viz.display(x / 1000., y / 1000., theta, mapbytes):
-            exit(0)
-        start=time.time()
+        #clientMsg = "Message from Client:{}".format(message)
+        print(decoded_msg)
+        # scan_data = [0] * 360
+        # # Update SLAM with current Lidar scan and scan angles if adequate
+        # if len(distances) > MIN_SAMPLES:
+        #     #print("wowwwww")
+        #     slam.update(distances, scan_angles_degrees=angles)
+        #     previous_distances = distances.copy()
+        #     previous_angles = angles.copy()
+        #
+        # # If not adequate, use previous
+        # elif previous_distances is not None:
+        #     slam.update(previous_distances, scan_angles_degrees=previous_angles)
+        #
+        # # Get current robot position
+        # x, y, theta = slam.getpos()
+        #
+        # # Get current map bytes as grayscale
+        # slam.getmap(mapbytes)
+        # #print(mapbytes)
+        #
+        # # Display map and robot pose, exiting gracefully if user closes it
+        # if not viz.display(x / 1000., y / 1000., theta, mapbytes):
+        #     exit(0)
+        # start=time.time()
 
     # while True:
     #
@@ -140,8 +141,3 @@ All text above must be included in any redistribution.
 
 
 scan_data = [0] * 360
-
-
-
-
-
