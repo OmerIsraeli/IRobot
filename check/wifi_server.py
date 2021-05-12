@@ -6,7 +6,7 @@ from breezyslam.algorithms import RMHC_SLAM
 from breezyslam.sensors import RPLidarA1 as LaserModel
 from roboviz import MapVisualizer
 import numpy as np
-
+from scipy.interpolate import interp1d
 
 
 
@@ -120,10 +120,14 @@ if __name__ == '__main__':
             #print("wowwwww")
             distances=[item[1] for item in array]
             angles = [item[0] for item in array]
+
+            f = interp1d(angles, distances, fill_value='extrapolate')
+            distances = list(f(np.arange(360)))  # slam.update wants a list
             # istances = array[0]
             # angles = array[1]
             #print("distances: ",distances,"\n angles: ",angles,"\n")
-            slam.update(distances, scan_angles_degrees=angles)
+            #slam.update(distances, scan_angles_degrees=angles)
+            slam.update(distances)
             previous_distances = distances.copy()
             previous_angles = angles.copy()
 
@@ -140,7 +144,7 @@ if __name__ == '__main__':
         # for byte in mapbytes:
         #     if byte != 127:
         #         #print("erez")
-        img=b2img(mapbytes,MAP_SIZE_PIXELS)
+        #img=b2img(mapbytes,MAP_SIZE_PIXELS)
         # if(time.time()-start>2):
         #     send_img(img)
         #     start = time.time()
