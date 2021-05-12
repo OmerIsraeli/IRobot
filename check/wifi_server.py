@@ -100,12 +100,14 @@ if __name__ == '__main__':
     previous_angles    = None
     start = time.time()
     while True:
-        bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
-
-        message = bytesAddressPair[0]
-        address = bytesAddressPair[1]
-        array = np.frombuffer(np.array(message),dtype=np.int8)
-        array = np.reshape(array, newshape=(array/3, 3))
+        size = int(UDPServerSocket.recv(9))
+        array = np.array([])
+        while size > len(array):
+            bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
+            message = bytesAddressPair[0]
+            address = bytesAddressPair[1]
+            temp = np.frombuffer(np.array(message),dtype=np.int8)
+            array = np.concatenate([array, np.reshape(array, newshape=(array/3, 3))])
 
 
         #clientMsg = "Message from Client:{}".format(message)
