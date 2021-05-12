@@ -101,19 +101,21 @@ if __name__ == '__main__':
     start = time.time()
     while True:
         bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
+
         message = bytesAddressPair[0]
         address = bytesAddressPair[1]
-        decoded_msg = data_arr = pickle.loads(message)
+        array = np.frombuffer(np.array(message),dtype=np.int8)
+        array = np.reshape(array, newshape=(array/3, 3))
 
 
         #clientMsg = "Message from Client:{}".format(message)
         #print(decoded_msg)
         # scan_data = [0] * 360
         # Update SLAM with current Lidar scan and scan angles if adequate
-        if len(data_arr[0]) > MIN_SAMPLES:
+        if len(array[0]) > MIN_SAMPLES:
             #print("wowwwww")
-            distances=[item[0] for item in data_arr]
-            angles = [item[1] for item in data_arr]
+            distances=[item[0] for item in array]
+            angles = [item[1] for item in array]
             #print("distances: ",distances,"\n angles: ",angles,"\n")
             slam.update(distances, scan_angles_degrees=angles)
             previous_distances = distances.copy()
