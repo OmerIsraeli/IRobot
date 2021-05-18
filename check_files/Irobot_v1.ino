@@ -1,8 +1,8 @@
 /* Encoder Library - Basic Example
- * http://www.pjrc.com/teensy/td_libs_Encoder.html
- *
- * This example code is in the public domain.
- */
+// * http://www.pjrc.com/teensy/td_libs_Encoder.html
+// *
+// * This example code is in the public domain.
+// */
 
 #include <Encoder.h>
 #include "DualVNH5019MotorShield.h"
@@ -141,7 +141,7 @@ void move(char c)
 
 
 
-///////////////////////////////movement
+///////////////////////////////rnadom movement
 
 
 void moveRandomly(){
@@ -155,6 +155,48 @@ void moveRandomly(){
   }
   else{
       if (TEST) Serial.println("I drive");
+  }
+  delay(1);
+}
+
+
+
+////////////////////////// new_move
+
+void new_move(char c, int degrees){
+
+  int detect = getDist();
+  if(detect >= 0){
+    if(MOTOR) turn(turn_degrees[detect]);
+    if(TEST){
+     if (TEST) Serial.println("I turn");
+    }
+  }
+  else{
+      if (TEST) Serial.println("I drive");
+      if(MOTOR) {
+    // forward
+    if(c == 'w')
+    {
+      md.setSpeeds(-1*spd,-1*spd);
+    }
+    //backward
+    if(c == 's')
+    {
+      md.setSpeeds(spd,spd);
+    }
+    //left
+    if(c == 'a')
+    {
+      turn(degrees);
+    }
+    if(c == 'p')
+    {
+      md.setBrakes(400, 400);
+    }
+    //stopIfFault()
+  }
+
   }
   delay(1);
 }
@@ -230,4 +272,19 @@ void loop(){
   while(true){
     moveTurnTo180();
   }
+}
+
+void new_loop()
+{
+    while(true)
+    {
+     if(Serial.available()){
+        input = Serial.read();
+        move_car(input);
+    }
+    else
+    {
+        moveTurnTo180();
+    }
+
 }
