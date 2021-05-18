@@ -36,27 +36,42 @@ def move(key):
         print(key)
     ser.write(PAUSE.encode('utf-8'))
 
-    def send(self):
-        ins = [(item, TIMES[item]) for item in self.move_list]
-        # print(ins)
-        i = 0
-        while i < len(ins):
-            if ins[i][0] == FORWARD:
-                ins.insert(i + 1, (RIGHT, TIMES[ERROR]))
-            i += 1
-        print(ins)
-        # ins = [('w', 1)] + ins
-        car_move_auto(ins)  # TODO: uncomment this :)
-# def control_led():
-#     global key_was_pressed
-#     if not key_was_pressed:
-#         ser.write(LEDS.encode('utf-8'))
-#         key_was_pressed = True
-#         time.sleep(0.2)
-#     else:
-#         ser.write(LEDS.encode('utf-8'))
-#         key_was_pressed = False
 
+def send(ins):
+    # print(ins)
+    ins = [('w',1)] + ins
+    car_move_auto(ins)
+
+
+def car_move_auto(ins):
+    key=''
+    ind=0
+    while ind<len(ins):
+        print(ind)
+        key=ins[ind][0]
+        timee=ins[ind][1]
+        ind+=1
+        time.sleep(0.1)
+        move_auto(key,timee)
+        if keyboard.is_pressed(STOP):
+            time.sleep(0.7)
+            ser.write(STOP.encode('utf-8'))
+
+
+def move_auto(key,timee):
+    key_was_pressed = False
+    start=time.time()
+    now=start
+    while now-start< timee :
+        if not key_was_pressed:
+            ser.write(key.encode('utf-8'))
+            key_was_pressed =True
+        now=time.time()
+    ser.write(STOP.encode('utf-8'))
+
+
+def terminate():
+    ser.write(STOP.encode('utf-8'))
 
 if __name__ == '__main__':
     car_move()
