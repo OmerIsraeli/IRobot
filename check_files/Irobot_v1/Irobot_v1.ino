@@ -270,23 +270,25 @@ void loopV0(){
   }
 }
 
-void loop(){
+void loop_working(){
   while(true){
     moveTurnTo180();
   }
 }
 
-void new_loop()
+void loop()
 {
     while(true)
     {
      if(Serial.available()){
+      
         input = Serial.read();
+        Serial.println(input);
         new_move(input,90);
     }
     else
     {
-        moveTurnTo180();
+        //moveTurnTo180();
     }
 
 }
