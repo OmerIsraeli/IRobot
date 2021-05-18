@@ -1,7 +1,22 @@
 import socket
+import time
+import pickle
 
-localIP = "127.0.0.1"
+from breezyslam.algorithms import RMHC_SLAM
+from breezyslam.sensors import RPLidarA1 as LaserModel
+from roboviz import MapVisualizer
+import numpy as np
+from scipy.interpolate import interp1d
+
+
+
+
+#from roboviz import MapVisualizer
+
+localIP = "132.64.143.30"
+localIP_IMG = "127.0.0.1"
 localPort = 20001
+
 bufferSize = 4096
 msgFromServer = "Hello UDP Client"
 bytesToSend = str.encode(msgFromServer)
@@ -11,22 +26,17 @@ UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPServerSocket.bind((localIP, localPort))
 print("UDP server up and listening")
 # Listen for incoming datagrams
-import time
-import pickle
 
-from breezyslam.algorithms import RMHC_SLAM
-from breezyslam.sensors import RPLidarA1 as LaserModel
-from roboviz import MapVisualizer
 
 MAP_SIZE_PIXELS         = 500
 MAP_SIZE_METERS         = 10
-LIDAR_DEVICE            = '/dev/ttyUSB0'
+
 TIMEC=1
 
 # Ideally we could use all 250 or so samples that the RPLidar delivers in one
 # scan, but on slower computers you'll get an empty map and unchanging position
 # at that rate.
-MIN_SAMPLES   =  100
+MIN_SAMPLES   =  10
 SCAN_BYTE = b'\x20'
 SCAN_TYPE = 129
 
@@ -34,6 +44,19 @@ SCAN_TYPE = 129
 # Screen width & height
 W = 640
 H = 480
+
+
+def b2img(mapbytes, pixels = MAP_SIZE_PIXELS):
+    map = np.zeros((pixels, pixels))
+    for i in range(pixels):
+        for j in range(pixels):
+            map[i][j] = mapbytes[i * pixels + j]
+    return map
+
+def send_img(img):
+    UDPServerSocket_IMG = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+    UDPServerSocket_IMG.sendto(img, (localIP_IMG,localPort_IMG))
+
 
 
 def _process_scan(raw):
@@ -58,10 +81,8 @@ if __name__ == '__main__':
 
     # Create an RMHC SLAM object with a laser model and optional robot model
     slam = RMHC_SLAM(LaserModel(), MAP_SIZE_PIXELS, MAP_SIZE_METERS)
-
     # Set up a SLAM display
     viz = MapVisualizer(MAP_SIZE_PIXELS, MAP_SIZE_METERS, 'SLAM')
-
     # Initialize an empty trajectory
     trajectory = []
 
@@ -75,38 +96,63 @@ if __name__ == '__main__':
     # We will use these to store previous scan in case current scan is inadequate
     previous_distances = None
     previous_angles    = None
+    start = time.time()
     while True:
-        bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
-        message = bytesAddressPair[0]
-        address = bytesAddressPair[1]
-        decoded_msg = data_arr = pickle.loads(message)
+        # size = int(UDPServerSocket.recv(6))
+        # print(size)
+        array = np.array([])
+        # while size > len(array):
+        message_full = UDPServerSocket.recvfrom(bufferSize)
+        message = message_full[0]
+        address = message_full[1]
+        print(message)
+        temp = np.frombuffer(np.array(message),dtype=np.float64)
+        #print(temp)
+        array = np.reshape(temp,(-1, 2))
+        print(array)
 
 
         #clientMsg = "Message from Client:{}".format(message)
-        print(decoded_msg)
+        #print(decoded_msg)
         # scan_data = [0] * 360
-        # # Update SLAM with current Lidar scan and scan angles if adequate
-        # if len(distances) > MIN_SAMPLES:
-        #     #print("wowwwww")
-        #     slam.update(distances, scan_angles_degrees=angles)
-        #     previous_distances = distances.copy()
-        #     previous_angles = angles.copy()
-        #
-        # # If not adequate, use previous
-        # elif previous_distances is not None:
-        #     slam.update(previous_distances, scan_angles_degrees=previous_angles)
-        #
-        # # Get current robot position
-        # x, y, theta = slam.getpos()
-        #
-        # # Get current map bytes as grayscale
-        # slam.getmap(mapbytes)
-        # #print(mapbytes)
-        #
-        # # Display map and robot pose, exiting gracefully if user closes it
-        # if not viz.display(x / 1000., y / 1000., theta, mapbytes):
-        #     exit(0)
-        # start=time.time()
+        # Update SLAM with current Lidar scan and scan angles if adequate
+        if len(array) > MIN_SAMPLES:
+            #print("wowwwww")
+            distances=[item[1] for item in array]
+            angles = [item[0] for item in array]
+
+            f = interp1d(angles, distances, fill_value='extrapolate')
+            distances = list(f(np.arange(360)))  # slam.update wants a list
+            # istances = array[0]
+            # angles = array[1]
+            #print("distances: ",distances,"\n angles: ",angles,"\n")
+            #slam.update(distances, scan_angles_degrees=angles)
+            slam.update(distances)
+            previous_distances = distances.copy()
+            previous_angles = angles.copy()
+
+        # If not adequate, use previous
+        elif previous_distances is not None:
+            slam.update(previous_distances, scan_angles_degrees=previous_angles)
+
+        # Get current robot position
+        x, y, theta = slam.getpos()
+
+        # Get current map bytes as grayscale
+        slam.getmap(mapbytes)
+        #print(mapbytes)
+        # for byte in mapbytes:
+        #     if byte != 127:
+        #         #print("erez")
+        #img=b2img(mapbytes,MAP_SIZE_PIXELS)
+        # if(time.time()-start>2):
+        #     send_img(img)
+        #     start = time.time()
+
+        # Display map and robot pose, exiting gracefully if user closes it
+        if not viz.display(x / 1000., y / 1000., theta, mapbytes):
+            exit(0)
+        #start=time.time()
 
     # while True:
     #
