@@ -2,7 +2,7 @@ import time
 import serial
 import keyboard
 
-ser = serial.Serial('COM9', 115200)
+ser = serial.Serial('COM7', 9600)
 STOP = '1'
 PAUSE= 'p'
 
@@ -48,10 +48,12 @@ def car_move_auto(ins):
     ind=0
     while ind<len(ins):
         print(ind)
+
         key=ins[ind][0]
         timee=ins[ind][1]
+        print(key)
         ind+=1
-        time.sleep(0.1)
+        time.sleep(1)
         move_auto(key,timee)
         if keyboard.is_pressed(STOP):
             time.sleep(0.7)
@@ -74,4 +76,6 @@ def terminate():
     ser.write(STOP.encode('utf-8'))
 
 if __name__ == '__main__':
-    car_move()
+    #car_move()
+    car_move_auto([('w',1),('s',3),('w',2),('s',3),('p',1)])
+    terminate()
