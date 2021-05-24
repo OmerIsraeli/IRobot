@@ -28,7 +28,7 @@ print("UDP server up and listening")
 MAP_SIZE_PIXELS = 500
 MAP_SIZE_METERS = 10
 mm_to_px = MAP_SIZE_PIXELS / (MAP_SIZE_METERS * 1000)
-BEEN_THERE = b'\x80'
+BEEN_THERE = b'\x00'
 TIMEC = 1
 
 # Ideally we could use all 250 or so samples that the RPLidar delivers in one
@@ -155,7 +155,7 @@ if __name__ == '__main__':
 
         # Get current robot position and add it to path
         x, y, theta = slam.getpos()
-        path.append((np.floor(x * mm_to_px), np.floor(y * mm_to_px)))
+        path.append(np.floor(y * mm_to_px)), (np.floor(x * mm_to_px))
         # Get current map bytes as grayscale
         slam.getmap(mapbytes)
         # print(mapbytes)
