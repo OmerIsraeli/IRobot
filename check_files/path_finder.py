@@ -50,8 +50,12 @@ def find_my_area(loc, nor, noc):
 
 
 def find_best_area(area_loc, areas):
+     best_loc = (0,0)
+     best_loc_param = 0
      for i in range(area_loc[0]):
          for j in range(area_loc[1]):
+             pass
+
 
 
 
