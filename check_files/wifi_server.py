@@ -7,16 +7,8 @@ from breezyslam.sensors import RPLidarA1 as LaserModel
 from roboviz import MapVisualizer
 import numpy as np
 from scipy.interpolate import interp1d
-<<<<<<< HEAD
 from .path_finder import get_directions
-
-
-
 #from roboviz import MapVisualizer
-=======
-
-# from roboviz import MapVisualizer
->>>>>>> pos_recording
 
 localIP = "132.64.143.30"
 localIP_IMG = "127.0.0.1"
