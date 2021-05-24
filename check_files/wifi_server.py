@@ -27,6 +27,7 @@ print("UDP server up and listening")
 
 MAP_SIZE_PIXELS = 500
 MAP_SIZE_METERS = 10
+mm_to_px = MAP_SIZE_PIXELS / (MAP_SIZE_METERS * 1000)
 BEEN_THERE = b'\x80'
 TIMEC = 1
 
@@ -72,7 +73,7 @@ def _process_scan(raw):
 
 def update_map(curr_map, points):
     for p in points:
-        curr_map[p[0] // 1000, p[1] // 1000] = BEEN_THERE
+        curr_map[p[0] * MAP_SIZE_PIXELS + p[1]] = BEEN_THERE
 
 
 EMPTY = 1
@@ -80,13 +81,17 @@ VISITED = 2
 BLOCKED = 3
 
 
-def label_map(curr_map):
+def label_map(curr_map, points):
     labels = {b'\x00': EMPTY, b'\x7F': VISITED, BEEN_THERE: BLOCKED}
     new_map = np.zeros(MAP_SIZE_PIXELS, MAP_SIZE_METERS)
-    for i in range(MAP_SIZE_PIXELS * MAP_SIZE_PIXELS):
-        new_map[i] = labels[curr_map[i]]
-    return new_map
+    for i in range(MAP_SIZE_PIXELS):
+        for j in range(MAP_SIZE_PIXELS):
+            if (i, j) in points:
+                new_map[i, j] = VISITED
+            else:
+                new_map[i, j] = labels[curr_map[i * MAP_SIZE_PIXELS + j]]
 
+    return new_map
 
 
 if __name__ == '__main__':
@@ -150,7 +155,7 @@ if __name__ == '__main__':
 
         # Get current robot position and add it to path
         x, y, theta = slam.getpos()
-        path.append((x, y))
+        path.append((np.floor(x * mm_to_px), np.floor(y * mm_to_px)))
         # Get current map bytes as grayscale
         slam.getmap(mapbytes)
         # print(mapbytes)
