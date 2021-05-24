@@ -7,8 +7,8 @@ from breezyslam.sensors import RPLidarA1 as LaserModel
 from roboviz import MapVisualizer
 import numpy as np
 from scipy.interpolate import interp1d
-from .path_finder import get_directions
-#from roboviz import MapVisualizer
+
+# from roboviz import MapVisualizer
 
 localIP = "132.64.143.30"
 localIP_IMG = "127.0.0.1"
@@ -27,7 +27,8 @@ print("UDP server up and listening")
 
 MAP_SIZE_PIXELS = 500
 MAP_SIZE_METERS = 10
-BEEN_THERE = b'\x80'
+mm_to_px = MAP_SIZE_PIXELS / (MAP_SIZE_METERS * 1000)
+BEEN_THERE = 0
 TIMEC = 1
 
 # Ideally we could use all 250 or so samples that the RPLidar delivers in one
@@ -72,21 +73,26 @@ def _process_scan(raw):
 
 def update_map(curr_map, points):
     for p in points:
-        curr_map[p[0] // 1000, p[1] // 1000] = BEEN_THERE
+        print('p is ' , p)
+        curr_map[int(p[0]) * MAP_SIZE_PIXELS + int(p[1])] = BEEN_THERE
 
 
 EMPTY = 1
 VISITED = 2
 BLOCKED = 3
+THRESH = 20
 
-
-def label_map(curr_map):
+def label_map(curr_map, points):
     labels = {b'\x00': EMPTY, b'\x7F': VISITED, BEEN_THERE: BLOCKED}
-    new_map = np.zeros(MAP_SIZE_PIXELS, MAP_SIZE_METERS)
-    for i in range(MAP_SIZE_PIXELS * MAP_SIZE_PIXELS):
-        new_map[i] = labels[curr_map[i]]
-    return new_map
+    new_map = np.zeros((MAP_SIZE_PIXELS, MAP_SIZE_PIXELS))
+    for i in range(MAP_SIZE_PIXELS):
+        for j in range(MAP_SIZE_PIXELS):
+            if (i, j) in points:
+                new_map[i, j] = VISITED
+            else:
+                new_map[i, j] = BLOCKED if curr_map[i * MAP_SIZE_PIXELS + j] < THRESH else EMPTY
 
+    return new_map
 
 
 if __name__ == '__main__':
@@ -103,7 +109,7 @@ if __name__ == '__main__':
     # Initialize empty map
     mapbytes = bytearray(MAP_SIZE_PIXELS * MAP_SIZE_PIXELS)
 
-    path = []
+    points = []
     # Create an iterator to collect scan data from the RPLidar
     # iterator = lidar.iter_scans()
 
@@ -119,11 +125,11 @@ if __name__ == '__main__':
         message_full = UDPServerSocket.recvfrom(bufferSize)
         message = message_full[0]
         address = message_full[1]
-        print(message)
+        #print(message)
         temp = np.frombuffer(np.array(message), dtype=np.float64)
         # print(temp)
         array = np.reshape(temp, (-1, 2))
-        print(array)
+        #print(array)
 
         # clientMsg = "Message from Client:{}".format(message)
         # print(decoded_msg)
@@ -150,7 +156,7 @@ if __name__ == '__main__':
 
         # Get current robot position and add it to path
         x, y, theta = slam.getpos()
-        path.append((x, y))
+        points.append((np.floor(y * mm_to_px), np.floor(x * mm_to_px)))
         # Get current map bytes as grayscale
         slam.getmap(mapbytes)
         # print(mapbytes)
@@ -162,16 +168,15 @@ if __name__ == '__main__':
         #     send_img(img)
         #     start = time.time()
 
-        update_map(mapbytes, path)
+        update_map(mapbytes, points)
         # Display map and robot pose, exiting gracefully if user closes it
         if not viz.display(x / 1000., y / 1000., theta, mapbytes):
             exit(0)
-        map= label_map(mapbytes)
-        #start=time.time()
-        instructions= get_directions(map,path[-1],theta)
-
+        #new_map = label_map(mapbytes, points)
+        #print(2 in new_map)
+        #print(1 in new_map)
+        #print(0 in new_map)
         # start=time.time()
-
 
     # while True:
     #

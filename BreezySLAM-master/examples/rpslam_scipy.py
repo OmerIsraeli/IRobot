@@ -35,7 +35,6 @@ from rplidar import RPLidar as Lidar
 
 from roboviz import MapVisualizer
 
-from scipy.interpolate import interp1d
 import numpy as np
 
 if __name__ == '__main__':
