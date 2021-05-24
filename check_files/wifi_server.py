@@ -7,7 +7,7 @@ from breezyslam.sensors import RPLidarA1 as LaserModel
 from roboviz import MapVisualizer
 import numpy as np
 from scipy.interpolate import interp1d
-
+from .path_finder import get_directions
 
 
 
@@ -153,7 +153,9 @@ if __name__ == '__main__':
         if not viz.display(x / 1000., y / 1000., theta, mapbytes):
             exit(0)
         #start=time.time()
-
+        #TODO integrate with roy
+        map, loc = Roys_Func()
+        instructions= get_directions(map,loc,theta)
     # while True:
     #
     #     # Extract (quality, angle, distance) triples from current scan

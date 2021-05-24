@@ -77,5 +77,5 @@ def terminate():
 
 if __name__ == '__main__':
     #car_move()
-    car_move_auto([('w',1),('s',3),('w',2),('s',3),('p',1)])
+    car_move_auto([('w',1),('w',3),('s',3),('w',3),('s',3),('p',1)])
     terminate()

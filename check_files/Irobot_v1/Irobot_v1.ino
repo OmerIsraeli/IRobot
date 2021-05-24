@@ -280,16 +280,17 @@ void loop()
 {
     while(true)
     {
-     if(Serial.available()){
+     while(Serial.available()){
       
         input = Serial.read();
         Serial.println(input);
         new_move(input,90);
+        //delay(50);
     }
-    else
-    {
-        //moveTurnTo180();
-    }
+    
+    //moveTurnTo180();
+    
+    
 
 }
 }
