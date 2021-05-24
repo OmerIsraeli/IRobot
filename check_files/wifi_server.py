@@ -27,7 +27,7 @@ print("UDP server up and listening")
 
 MAP_SIZE_PIXELS = 500
 MAP_SIZE_METERS = 10
-BEEN_THERE = b'\x80'
+BEEN_THERE =0
 TIMEC = 1
 
 # Ideally we could use all 250 or so samples that the RPLidar delivers in one
