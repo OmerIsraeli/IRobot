@@ -51,6 +51,7 @@ def car_move_auto(ins):
 
         key = ins[ind][0]
         timee = ins[ind][1]
+        angle =ins[ind][2]
         print(key)
         ind += 1
         time.sleep(1)

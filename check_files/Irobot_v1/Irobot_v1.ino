@@ -16,7 +16,7 @@ char incomingByte;
 // encoder
 #define encPin1 18
 #define encPin2 19
-#define READS_PER_DEFREE 18
+#define READS_PER_DEFREE 22
 
 // ultrasonic
 #define NUM_OF_SENSORS 3
@@ -192,6 +192,10 @@ void new_move(char c, int degrees){
     {
       turn(degrees);
     }
+    if(c == 'd')
+    {
+      turn(degrees);
+    }
     if(c == 'p')
     {
       md.setBrakes(400, 400);
@@ -219,9 +223,8 @@ void moveTurnTo180(){
 }
 
 
-
-
-void turn(int degrees){
+///////////////////////// OLD TURN ////////////////////////
+void old_turn(int degrees){
   long oldPosition  = -999;
   long start = myEnc.read();
   if (TEST) Serial.print("start = ");
@@ -240,6 +243,41 @@ void turn(int degrees){
   md.setSpeeds(0,0);
 }
 
+///////////////// NEW TURN /////////////////////s
+void turn(int degrees){
+  long oldPosition  = -999;
+  long start = myEnc.read();
+  if (TEST) Serial.print("start = ");
+  if (TEST) Serial.println(start);
+  if(degrees > 0){
+    md.setSpeeds(-1*spd,spd);
+    long newPosition = -3;
+    do{
+      newPosition = myEnc.read();
+
+      if (newPosition != oldPosition) {
+      oldPosition = newPosition;
+      if (TEST) Serial.print((newPosition - start)/READS_PER_DEFREE);
+      if (TEST) Serial.println((newPosition - start)/READS_PER_DEFREE < degrees);
+      }
+    }while((newPosition - start)/READS_PER_DEFREE < degrees);
+  }
+  else {
+    md.setSpeeds(spd, -1*spd);
+
+    long newPosition = 3;
+    do{
+      newPosition = myEnc.read();
+
+      if (newPosition != oldPosition) {
+      oldPosition = newPosition;
+      if (TEST) Serial.print((newPosition - start)/READS_PER_DEFREE);
+      if (TEST) Serial.println((newPosition - start)/READS_PER_DEFREE < degrees);
+      }
+    }while((newPosition - start)/READS_PER_DEFREE > degrees);
+  }
+  md.setSpeeds(0,0);
+}
 
 
 
@@ -288,9 +326,9 @@ void loop()
         String angle =Serial.readStringUntil('\n');
         int ang= angle.toInt();
         //input = Serial.read();
-        Serial.println(direction_c);
-        Serial.println(ang);
-        //new_move(input,ang);
+        //Serial.println(direction_c);
+        //Serial.println(ang);
+        new_move(input,ang);
         //delay(50);
     }
     
