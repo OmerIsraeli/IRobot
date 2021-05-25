@@ -30,7 +30,7 @@ def get_directions(map, loc, theta):
     map_areas = parse_map(map, NUMBER_OF_ROWS, NUMBER_OF_COLS)
 
     # find the area of the cur location of rufus in (i,j)
-    area_loc = find_my_area(map, loc)
+    area_loc = find_my_area(loc, NUMBER_OF_ROWS, NUMBER_OF_COLS)
 
     # find the best areas for getting forward
     loc1 = find_best_area(area_loc, map_areas)
@@ -76,12 +76,12 @@ def find_next_loc(map, map_areas, area_loc, loc1, loc):
     # m, c = np.linalg.lstsq(np.array([loc, loc1]), [loc[1], loc1[1]], rcond=None)[0]
     new_loc = loc
     if area_loc[0] < loc1[0]:
-        if (area_loc[1] > loc1[1]):
+        if area_loc[1] > loc1[1]:
             new_loc = [int(map.shape[0] / NUMBER_OF_ROWS) - 1, 0]
         else:
             new_loc = [int(map.shape[0] / NUMBER_OF_ROWS) - 1, int(map.shape[1] / NUMBER_OF_COLS) - 1]
     else:
-        if (area_loc[1] > loc1[1]):
+        if area_loc[1] > loc1[1]:
             new_loc = [0, 0]
         else:
             new_loc = [0, int(map.shape[1] // NUMBER_OF_COLS) - 1]
