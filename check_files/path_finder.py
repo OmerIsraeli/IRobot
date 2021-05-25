@@ -40,6 +40,8 @@ def get_directions(map, loc, theta):
 
     # build track of rufus
     track = build_track(map_areas, loc, next_loc, theta)
+
+    track = adjust_track(track)
     return track
 
 
@@ -125,21 +127,27 @@ def build_track(map, loc, next_loc, theta):
             track += ['w', 0]
             loc = [loc[0] + 1, loc[1]]
             if map[loc] == BLOCKED or loc[1] == next_loc[1]:
-                change_angle_to_ver(loc, next_loc)
+                d, angle = change_angle_to_ver(idx_hor, idx_ver)
+                track += [d, angle]
                 for j in range(map.shape[0] // NUMBER_OF_ROWS):
                     track += ['w', 0]
                     loc = [loc[0], loc[1] + 1]
                     if map[loc] == BLOCKED or loc[0] == next_loc[0]:
-                        d, angle = change_angle_to_ver(idx_hor,idx_ver)
-                        track += [d, angle]
                         break
                 break
         if loc[0] == next_loc[0] and loc[1] == next_loc[1]:
             flag = False
+    return track
 
 
-nor = NUMBER_OF_ROWS
-noc = NUMBER_OF_COLS
-arr = np.array([[1, 1], [1, 1]])
-map = np.pad(arr, (0, nor - arr.shape[0] % nor), (0, noc - arr.shape[1] % noc), 'constant', constant_values=(0, 0))
-print(map)
+def adjust_track(track):
+    new_track= []
+    for step in track:
+        if len(new_track)==0:
+            new_track += [step]
+        else:
+            if new_track[-1][0]== step[0] and new_track[-1][0]=='w':
+                new_track[-1][1]+=1
+            else:
+                new_track += [step]
+    return new_track
