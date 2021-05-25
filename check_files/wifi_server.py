@@ -7,6 +7,7 @@ from breezyslam.sensors import RPLidarA1 as LaserModel
 from roboviz import MapVisualizer
 import numpy as np
 from scipy.interpolate import interp1d
+#from .path_finder import get_directions
 
 # from roboviz import MapVisualizer
 
@@ -176,6 +177,7 @@ if __name__ == '__main__':
         if not viz.display(x / 1000., y / 1000., theta, mapbytes):
             exit(0)
         #new_map = label_map(mapbytes, points)
+        #track = get_directions(new_map,loc,theta)
         #print(2 in new_map)
         #print(1 in new_map)
         #print(0 in new_map)
