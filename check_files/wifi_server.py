@@ -1,7 +1,8 @@
 import socket
 import time
 import pickle
-
+from opencv-python import cv2
+from cv2 import dilate, erode
 from breezyslam.algorithms import RMHC_SLAM
 from breezyslam.sensors import RPLidarA1 as LaserModel
 from roboviz import MapVisualizer
@@ -88,16 +89,19 @@ THRESH = 20
 
 def label_map(curr_map, points):
     #labels = {b'\x00': EMPTY, b'\x7F': VISITED, BEEN_THERE: BLOCKED}
-    print(curr_map)
-    return curr_map
+    cv2.imshow("Original",curr_map)
+    kernel= np.ones(((5,5), np.uint8))
+    img_erosion= erode(curr_map, kernel, iterations=1)
+    new_img = dilate(img_erosion, kernel, iterations=1)
+    cv2.imshow('Erosion', img_erosion)
+    cv2.imshow('Dilation', new_img)
     new_map = np.zeros((MAP_SIZE_PIXELS, MAP_SIZE_PIXELS))
     for i in range(MAP_SIZE_PIXELS):
         for j in range(MAP_SIZE_PIXELS):
             if (i, j) in points:
                 new_map[i, j] = VISITED
             else:
-                new_map[i, j] = BLOCKED if curr_map[i * MAP_SIZE_PIXELS + j] < THRESH else EMPTY
-
+                new_map[i, j] = BLOCKED if new_img[i * MAP_SIZE_PIXELS + j] < THRESH else EMPTY
     return new_map
 
 

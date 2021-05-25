@@ -72,7 +72,7 @@ def move_auto(key, timee, angle):
             now = time.time()
     else:
         if not key_was_pressed:
-            white_spaces = " "
+            white_spaces = ","
             ser.write(key.encode('utf-8')+white_spaces.encode('utf-8')+angle.encode('utf-8'))
             key_was_pressed = True
     ser.write(STOP.encode('utf-8'))
