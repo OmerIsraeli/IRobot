@@ -281,10 +281,16 @@ void loop()
     while(true)
     {
      while(Serial.available()){
-      
-        input = Serial.read();
-        Serial.println(input);
-        new_move(input,90);
+        String direction = Serial.readStringUntil(',');
+        char char_array[direction.length()+1];
+        direction.toCharArray(char_array,direction.length()+1);
+        char direction_c=char_array[0];
+        String angle =Serial.readStringUntil('\n');
+        int ang= angle.toInt();
+        //input = Serial.read();
+        Serial.println(direction_c);
+        Serial.println(ang);
+        //new_move(input,ang);
         //delay(50);
     }
     

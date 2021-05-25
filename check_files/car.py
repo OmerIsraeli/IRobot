@@ -4,7 +4,7 @@ import keyboard
 
 ser = serial.Serial('COM7', 9600)
 STOP = '1'
-PAUSE= 'p'
+PAUSE = 'p'
 
 LEDS = 't'
 flag = False
@@ -39,43 +39,50 @@ def move(key):
 
 def send(ins):
     # print(ins)
-    ins = [('w',1)] + ins
+    ins = [('w', 1)] + ins
     car_move_auto(ins)
 
 
 def car_move_auto(ins):
-    key=''
-    ind=0
-    while ind<len(ins):
+    key = ''
+    ind = 0
+    while ind < len(ins):
         print(ind)
 
-        key=ins[ind][0]
-        timee=ins[ind][1]
+        key = ins[ind][0]
+        timee = ins[ind][1]
         print(key)
-        ind+=1
+        ind += 1
         time.sleep(1)
-        move_auto(key,timee)
+        move_auto(key, timee, angle)
         if keyboard.is_pressed(STOP):
             time.sleep(0.7)
             ser.write(STOP.encode('utf-8'))
 
 
-def move_auto(key,timee):
+def move_auto(key, timee, angle):
     key_was_pressed = False
-    start=time.time()
-    now=start
-    while now-start< timee :
+    start = time.time()
+    now = start
+    if timee>0:
+        while now - start < timee:
+            if not key_was_pressed:
+                ser.write(key.encode('utf-8'))
+                key_was_pressed = True
+            now = time.time()
+    else:
         if not key_was_pressed:
-            ser.write(key.encode('utf-8'))
-            key_was_pressed =True
-        now=time.time()
+            white_spaces = ","
+            ser.write(key.encode('utf-8')+white_spaces.encode('utf-8')+angle.encode('utf-8'))
+            key_was_pressed = True
     ser.write(STOP.encode('utf-8'))
 
 
 def terminate():
     ser.write(STOP.encode('utf-8'))
 
+
 if __name__ == '__main__':
-    #car_move()
-    car_move_auto([('w',1),('w',3),('s',3),('w',3),('s',3),('p',1)])
+    # car_move()
+    car_move_auto([('w', 1), ('w', 3), ('s', 3), ('w', 3), ('s', 3), ('p', 1)])
     terminate()
