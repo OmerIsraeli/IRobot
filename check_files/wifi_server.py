@@ -1,7 +1,7 @@
 import socket
 import time
 import pickle
-from opencv-python import cv2
+import cv2
 from cv2 import dilate, erode
 from breezyslam.algorithms import RMHC_SLAM
 from breezyslam.sensors import RPLidarA1 as LaserModel
@@ -11,6 +11,7 @@ from scipy.interpolate import interp1d
 #from .path_finder import get_directions
 
 # from roboviz import MapVisualizer
+
 
 localIP = "192.168.137.148"
 localIP_IMG = "127.0.0.1"
@@ -85,23 +86,25 @@ def update_map(curr_map, points):
 EMPTY = 1
 VISITED = 2
 BLOCKED = 3
-THRESH = 20
+THRESH = 129
 
 def label_map(curr_map, points):
     #labels = {b'\x00': EMPTY, b'\x7F': VISITED, BEEN_THERE: BLOCKED}
-    cv2.imshow("Original",curr_map)
-    kernel= np.ones(((5,5), np.uint8))
-    img_erosion= erode(curr_map, kernel, iterations=1)
-    new_img = dilate(img_erosion, kernel, iterations=1)
-    cv2.imshow('Erosion', img_erosion)
-    cv2.imshow('Dilation', new_img)
+    curr= np.array(curr_map)
+    curr=curr.reshape((MAP_SIZE_PIXELS,MAP_SIZE_PIXELS))
+    cv2.imwrite("Original.png",curr)
+    kernel= np.ones((2,2), np.uint8)
+    img_erosion= erode(curr, kernel, iterations=2)
+    new_img = dilate(img_erosion, kernel, iterations=3)
+    return new_img
+    cv2.imwrite('Erosion.png', np.array(img_erosion))
+    cv2.imwrite('Dilation.png', np.array(new_img))
     new_map = np.zeros((MAP_SIZE_PIXELS, MAP_SIZE_PIXELS))
     for i in range(MAP_SIZE_PIXELS):
         for j in range(MAP_SIZE_PIXELS):
+            new_map[i, j] = BLOCKED if new_img[i ,j] < THRESH else EMPTY
             if (i, j) in points:
                 new_map[i, j] = VISITED
-            else:
-                new_map[i, j] = BLOCKED if new_img[i * MAP_SIZE_PIXELS + j] < THRESH else EMPTY
     return new_map
 
 
@@ -179,12 +182,14 @@ if __name__ == '__main__':
         #     start = time.time()
 
         update_map(mapbytes, points)
-        # Display map and robot pose, exiting gracefully if user closes it
-        if not viz.display(x / 1000., y / 1000., theta, mapbytes):
-            exit(0)
         new_map = label_map(mapbytes, points)
-        raise exception()
-        track = get_directions(new_map,loc,theta)
+        # Display map and robot pose, exiting gracefully if user closes it
+        if not viz.display(x / 1000., y / 1000., theta, new_map):
+            exit(0)
+
+        #raise exception()
+        cv2.imwrite("new_map.png",new_map)
+        #track = get_directions(new_map,loc,theta)
         #print(2 in new_map)
         #print(1 in new_map)
         #print(0 in new_map)
