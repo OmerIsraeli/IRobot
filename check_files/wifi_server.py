@@ -87,7 +87,9 @@ BLOCKED = 3
 THRESH = 20
 
 def label_map(curr_map, points):
-    labels = {b'\x00': EMPTY, b'\x7F': VISITED, BEEN_THERE: BLOCKED}
+    #labels = {b'\x00': EMPTY, b'\x7F': VISITED, BEEN_THERE: BLOCKED}
+    print(curr_map)
+    return curr_map
     new_map = np.zeros((MAP_SIZE_PIXELS, MAP_SIZE_PIXELS))
     for i in range(MAP_SIZE_PIXELS):
         for j in range(MAP_SIZE_PIXELS):
@@ -176,8 +178,9 @@ if __name__ == '__main__':
         # Display map and robot pose, exiting gracefully if user closes it
         if not viz.display(x / 1000., y / 1000., theta, mapbytes):
             exit(0)
-        #new_map = label_map(mapbytes, points)
-        #track = get_directions(new_map,loc,theta)
+        new_map = label_map(mapbytes, points)
+        raise exception()
+        track = get_directions(new_map,loc,theta)
         #print(2 in new_map)
         #print(1 in new_map)
         #print(0 in new_map)

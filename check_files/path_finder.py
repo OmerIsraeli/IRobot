@@ -115,22 +115,22 @@ def change_angle_to_ver(idx_hor, idx_ver):
 
 
 def build_track(map, loc, next_loc, theta):
-    idx_hor= loc[0]< next_loc[0]
-    idx_ver= loc[1]<next_loc[1]
+    idx_hor = loc[0] < next_loc[0]
+    idx_ver = loc[1] < next_loc[1]
     track = []
     d, angle = change_angle_to_hor(idx_hor, theta)
-    track += [d, angle]
+    track += [d, 0, angle]
     timee = time.time()
     flag = True
     while time.time() - timee < 30 and flag:
         for i in range(map.shape[1] // NUMBER_OF_COLS):
-            track += ['w', 0]
+            track += ['w', 1, 0]
             loc = [loc[0] + 1, loc[1]]
             if map[loc] == BLOCKED or loc[1] == next_loc[1]:
                 d, angle = change_angle_to_ver(idx_hor, idx_ver)
-                track += [d, angle]
+                track += [d, 0, angle]
                 for j in range(map.shape[0] // NUMBER_OF_ROWS):
-                    track += ['w', 0]
+                    track += ['w', 1, 0]
                     loc = [loc[0], loc[1] + 1]
                     if map[loc] == BLOCKED or loc[0] == next_loc[0]:
                         break
@@ -141,13 +141,13 @@ def build_track(map, loc, next_loc, theta):
 
 
 def adjust_track(track):
-    new_track= []
+    new_track = []
     for step in track:
-        if len(new_track)==0:
+        if len(new_track) == 0:
             new_track += [step]
         else:
-            if new_track[-1][0]== step[0] and new_track[-1][0]=='w':
-                new_track[-1][1]+=1
+            if new_track[-1][0] == step[0] and new_track[-1][0] == 'w':
+                new_track[-1][1] += 1
             else:
                 new_track += [step]
     return new_track
