@@ -35,10 +35,10 @@ def get_directions(map, loc, theta):
     # find the best areas for getting forward
     loc1 = find_best_area(area_loc, map_areas)
 
-    #find our next loc
-    next_loc = find_next_loc(map,map_areas, area_loc, loc1, loc)
+    # find our next loc
+    next_loc = find_next_loc(map, map_areas, area_loc, loc1, loc)
 
-    #build track of rufus
+    # build track of rufus
     track = build_track(map_areas, loc, next_loc, theta)
     return track
 
@@ -72,69 +72,70 @@ def find_next_loc(map, map_areas, area_loc, loc1, loc):
     # area_loc_new = [int(map.shape[0]/NUMBER_OF_ROWS*(area_loc[0]+1)-1),int(map.shape[1]/NUMBER_OF_COLS*(area_loc[
     #                                                                                                         1]+1)-1)]
     # m, c = np.linalg.lstsq(np.array([loc, loc1]), [loc[1], loc1[1]], rcond=None)[0]
-    new_loc= loc
-    if area_loc[0]<loc1[0]:
-        if(area_loc[1]>loc1[1]):
-            new_loc= [ int(map.shape[0] /NUMBER_OF_ROWS)-1,0]
+    new_loc = loc
+    if area_loc[0] < loc1[0]:
+        if (area_loc[1] > loc1[1]):
+            new_loc = [int(map.shape[0] / NUMBER_OF_ROWS) - 1, 0]
         else:
-            new_loc=[int(map.shape[0] / NUMBER_OF_ROWS)- 1, int(map.shape[1] / NUMBER_OF_COLS)-1]
+            new_loc = [int(map.shape[0] / NUMBER_OF_ROWS) - 1, int(map.shape[1] / NUMBER_OF_COLS) - 1]
     else:
-        if(area_loc[1]>loc1[1]):
-            new_loc=[0,0]
+        if (area_loc[1] > loc1[1]):
+            new_loc = [0, 0]
         else:
-            new_loc = [0, int(map.shape[1] //NUMBER_OF_COLS)-1]
+            new_loc = [0, int(map.shape[1] // NUMBER_OF_COLS) - 1]
     return new_loc
 
 
-def change_angle_to_hor(loc, next_loc, theta):
-    if loc[0]<next_loc[0]:
+def change_angle_to_hor(idx_hor, theta):
+    if idx_hor:
         if theta < 90 or theta > 270:
-            return 'd', abs(90-theta)
+            return 'd', abs(90 - theta)
         else:
-            return 'a',abs(90-theta)
+            return 'a', abs(90 - theta)
     else:
         if theta < 90 or theta > 270:
-            return 'd', abs(270-theta)
+            return 'd', abs(270 - theta)
         else:
-            return 'a',abs(270-theta)
+            return 'a', abs(270 - theta)
 
 
-
-def change_angle_to_ver(loc, next_loc):
-    if loc[0] < next_loc[0]:
-        if theta < 90 or theta > 270:
-            return ['d', abs(90 - theta)]
+def change_angle_to_ver(idx_hor, idx_ver):
+    if idx_hor:
+        if idx_ver:
+            return 'a', 90
         else:
-            return ['a', abs(90 - theta)]
+            return 'd', 90
     else:
-        re
+        if idx_ver:
+            return 'd', 90
+        else:
+            return 'a', 90
+
 
 def build_track(map, loc, next_loc, theta):
+    idx_hor= loc[0]< next_loc[0]
+    idx_ver= loc[1]<next_loc[1]
     track = []
-    d,angle=change_angle_to_hor(loc,next_loc,theta)
-    track += [d,angle]
-    timee=time.time()
-    flag=True
-    while time.time()-timee<30 and flag:
-        for i in range(map.shape[1]//NUMBER_OF_COLS):
-            track+=['w',0]
-            loc= [loc[0]+1,loc[1]]
-            if map[loc] == BLOCKED or loc[1]==next_loc[1]:
-                change_angle_to_ver(loc,next_loc)
+    d, angle = change_angle_to_hor(idx_hor, theta)
+    track += [d, angle]
+    timee = time.time()
+    flag = True
+    while time.time() - timee < 30 and flag:
+        for i in range(map.shape[1] // NUMBER_OF_COLS):
+            track += ['w', 0]
+            loc = [loc[0] + 1, loc[1]]
+            if map[loc] == BLOCKED or loc[1] == next_loc[1]:
+                change_angle_to_ver(loc, next_loc)
                 for j in range(map.shape[0] // NUMBER_OF_ROWS):
                     track += ['w', 0]
-                    loc = [loc[0] , loc[1]+1]
+                    loc = [loc[0], loc[1] + 1]
                     if map[loc] == BLOCKED or loc[0] == next_loc[0]:
+                        d, angle = change_angle_to_ver(idx_hor,idx_ver)
+                        track += [d, angle]
                         break
                 break
-        if loc==next_loc:
-            flag=False
-
-
-
-
-
-
+        if loc[0] == next_loc[0] and loc[1] == next_loc[1]:
+            flag = False
 
 
 nor = NUMBER_OF_ROWS
