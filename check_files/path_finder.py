@@ -27,16 +27,16 @@ def get_directions(map, loc, theta):
     """
 
     # parsing the map areas
-    map_areas = parse_map(map, NUMBER_OF_ROWS, NUMBER_OF_COLS)
+    map_areas = parse_map(map, map.shape[0]//NUMBER_OF_ROWS, map.shape[1]//NUMBER_OF_COLS)
 
     # find the area of the cur location of rufus in (i,j)
-    area_loc = find_my_area(loc, NUMBER_OF_ROWS, NUMBER_OF_COLS)
+    area_loc = find_my_area(loc,  map.shape[0]//NUMBER_OF_ROWS, map.shape[1]//NUMBER_OF_COLS)
 
     # find the best areas for getting forward
-    loc1 = find_best_area(area_loc, map_areas)
+    next_loc_area = find_best_area(area_loc, map_areas)
 
     # find our next loc
-    next_loc = find_next_loc(map, map_areas, area_loc, loc1, loc)
+    next_loc = find_next_loc(map, map_areas, area_loc, next_loc_area)
 
     # build track of rufus
     track = build_track(map_areas, loc, next_loc, theta)
@@ -47,11 +47,12 @@ def get_directions(map, loc, theta):
 
 def parse_map(map, nor, noc):
     map = np.resize(map, (map.shape[0] + nor - map.shape[0] % nor, map.shape[1] + noc - map.shape[1] % noc))
-    map_areas = [[map[nor * i:nor * (i + 1), noc * j:noc * (j + 1)] for j in range(map.shape[1])] for i in
-                 range(map.shape[0])]
+    map_areas = [[map[nor * i:nor * (i + 1), noc * j:noc * (j + 1)] for j in range(NUMBER_OF_COLS)] for i in
+                 range(NUMBER_OF_ROWS)]
     return np.array(map_areas)
 
 
+#TODO check if i have mistake
 def find_my_area(loc, nor, noc):
     return [loc[0] // nor, loc[1] // noc]
 
@@ -62,19 +63,18 @@ def find_best_area(area_loc, areas):
     for i in range(area_loc[0]):
         for j in range(area_loc[1]):
             dist = np.sqrt((i - area_loc[0]) ** 2 + (j - area_loc[1]) ** 2)
-            param = dist * np.count_nonzero(areas[i, j] == EMPTY)
-            if param < best_loc_param:
+            param = dist / np.count_nonzero(areas[i, j] == EMPTY)
+            if param < best_loc_param or i == j == 0:
                 best_loc_param = param
                 best_loc = [i, j]
     return best_loc
 
 
-def find_next_loc(map, map_areas, area_loc, loc1, loc):
+def find_next_loc(map, map_areas, area_loc, loc1):
     # loc1 = [int(map.shape[0]/NUMBER_OF_ROWS*(loc1[0]+1/2)),int(map.shape[1]/NUMBER_OF_COLS*(loc1[1]+1/2))]
     # area_loc_new = [int(map.shape[0]/NUMBER_OF_ROWS*(area_loc[0]+1)-1),int(map.shape[1]/NUMBER_OF_COLS*(area_loc[
     #                                                                                                         1]+1)-1)]
     # m, c = np.linalg.lstsq(np.array([loc, loc1]), [loc[1], loc1[1]], rcond=None)[0]
-    new_loc = loc
     if area_loc[0] < loc1[0]:
         if area_loc[1] > loc1[1]:
             new_loc = [int(map.shape[0] / NUMBER_OF_ROWS) - 1, 0]
@@ -120,12 +120,13 @@ def build_track(map, loc, next_loc, theta):
     track = []
     d, angle = change_angle_to_hor(idx_hor, theta)
     track += [d, 0, angle]
-    timee = time.time()
+    timee=0
     flag = True
-    while time.time() - timee < 30 and flag:
+    while timee < 30 and flag:
         for i in range(map.shape[1] // NUMBER_OF_COLS):
             track += ['w', 1, 0]
             loc = [loc[0] + 1, loc[1]]
+            timee += 1
             if map[loc] == BLOCKED or loc[1] == next_loc[1]:
                 d, angle = change_angle_to_ver(idx_hor, idx_ver)
                 track += [d, 0, angle]
