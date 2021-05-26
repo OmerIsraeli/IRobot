@@ -70,18 +70,18 @@ def find_best_area(area_loc, areas):
     return best_loc
 
 
-def find_next_loc(map, map_areas, area_loc, loc1):
-    # loc1 = [int(map.shape[0]/NUMBER_OF_ROWS*(loc1[0]+1/2)),int(map.shape[1]/NUMBER_OF_COLS*(loc1[1]+1/2))]
+def find_next_loc(map, map_areas, area_loc, next_loc_area):
+    # next_loc_area = [int(map.shape[0]/NUMBER_OF_ROWS*(loc1[0]+1/2)),int(map.shape[1]/NUMBER_OF_COLS*(loc1[1]+1/2))]
     # area_loc_new = [int(map.shape[0]/NUMBER_OF_ROWS*(area_loc[0]+1)-1),int(map.shape[1]/NUMBER_OF_COLS*(area_loc[
     #                                                                                                         1]+1)-1)]
     # m, c = np.linalg.lstsq(np.array([loc, loc1]), [loc[1], loc1[1]], rcond=None)[0]
-    if area_loc[0] < loc1[0]:
-        if area_loc[1] > loc1[1]:
-            new_loc = [int(map.shape[0] / NUMBER_OF_ROWS) - 1, 0]
+    if area_loc[0] < next_loc_area[0]:
+        if area_loc[1] > next_loc_area[1]:
+            new_loc = [int(map.shape[0] // NUMBER_OF_ROWS) - 1, 0]
         else:
-            new_loc = [int(map.shape[0] / NUMBER_OF_ROWS) - 1, int(map.shape[1] / NUMBER_OF_COLS) - 1]
+            new_loc = [int(map.shape[0] // NUMBER_OF_ROWS) - 1, int(map.shape[1] // NUMBER_OF_COLS) - 1]
     else:
-        if area_loc[1] > loc1[1]:
+        if area_loc[1] > next_loc_area[1]:
             new_loc = [0, 0]
         else:
             new_loc = [0, int(map.shape[1] // NUMBER_OF_COLS) - 1]
@@ -120,13 +120,13 @@ def build_track(map, loc, next_loc, theta):
     track = []
     d, angle = change_angle_to_hor(idx_hor, theta)
     track += [d, 0, angle]
-    timee=0
-    flag = True
-    while timee < 30 and flag:
+    steps = 0
+    not_reached_dst = True
+    while steps < 30 and not_reached_dst:
         for i in range(map.shape[1] // NUMBER_OF_COLS):
             track += ['w', 1, 0]
             loc = [loc[0] + 1, loc[1]]
-            timee += 1
+            steps += 1
             if map[loc] == BLOCKED or loc[1] == next_loc[1]:
                 d, angle = change_angle_to_ver(idx_hor, idx_ver)
                 track += [d, 0, angle]
@@ -137,8 +137,8 @@ def build_track(map, loc, next_loc, theta):
                         break
                 break
         if loc[0] == next_loc[0] and loc[1] == next_loc[1]:
-            flag = False
-    return track
+            not_reached_dst = False
+    return track+['w',1,0]
 
 
 def adjust_track(track):
