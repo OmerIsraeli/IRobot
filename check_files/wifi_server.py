@@ -8,7 +8,7 @@ from breezyslam.sensors import RPLidarA1 as LaserModel
 from roboviz import MapVisualizer
 import numpy as np
 from scipy.interpolate import interp1d
-from .path_finder import get_directions
+from .path_finder import get_directions, get_next_loc
 from .car import car_move_auto, terminate
 
 # from roboviz import MapVisualizer
@@ -34,7 +34,6 @@ MAP_SIZE_METERS = 10
 
 mm_to_px = MAP_SIZE_PIXELS / (MAP_SIZE_METERS * 1000)
 BEEN_THERE = 0
-
 
 TIMEC = 1
 
@@ -80,7 +79,7 @@ def _process_scan(raw):
 
 def update_map(curr_map, points):
     for p in points:
-        print('p is ' , p)
+        print('p is ', p)
         curr_map[int(p[0]) * MAP_SIZE_PIXELS + int(p[1])] = BEEN_THERE
 
 
@@ -89,13 +88,14 @@ VISITED = 2
 BLOCKED = 3
 THRESH = 129
 
+
 def label_map(curr_map, points):
-    #labels = {b'\x00': EMPTY, b'\x7F': VISITED, BEEN_THERE: BLOCKED}
-    curr= np.array(curr_map)
-    curr=curr.reshape((MAP_SIZE_PIXELS,MAP_SIZE_PIXELS))
-    cv2.imwrite("Original.png",curr)
-    kernel= np.ones((2,2), np.uint8)
-    img_erosion= erode(curr, kernel, iterations=2)
+    # labels = {b'\x00': EMPTY, b'\x7F': VISITED, BEEN_THERE: BLOCKED}
+    curr = np.array(curr_map)
+    curr = curr.reshape((MAP_SIZE_PIXELS, MAP_SIZE_PIXELS))
+    cv2.imwrite("Original.png", curr)
+    kernel = np.ones((2, 2), np.uint8)
+    img_erosion = erode(curr, kernel, iterations=2)
     new_img = dilate(img_erosion, kernel, iterations=3)
     return new_img
     cv2.imwrite('Erosion.png', np.array(img_erosion))
@@ -103,7 +103,7 @@ def label_map(curr_map, points):
     new_map = np.zeros((MAP_SIZE_PIXELS, MAP_SIZE_PIXELS))
     for i in range(MAP_SIZE_PIXELS):
         for j in range(MAP_SIZE_PIXELS):
-            new_map[i, j] = BLOCKED if new_img[i ,j] < THRESH else EMPTY
+            new_map[i, j] = BLOCKED if new_img[i, j] < THRESH else EMPTY
             if (i, j) in points:
                 new_map[i, j] = VISITED
     return new_map
@@ -131,6 +131,8 @@ if __name__ == '__main__':
     previous_distances = None
     previous_angles = None
     start = time.time()
+    reach_dest_flag = True
+    new_loc = None
     while True:
         # size = int(UDPServerSocket.recv(6))
         # print(size)
@@ -139,11 +141,11 @@ if __name__ == '__main__':
         message_full = UDPServerSocket.recvfrom(bufferSize)
         message = message_full[0]
         address = message_full[1]
-        #print(message)
+        # print(message)
         temp = np.frombuffer(np.array(message), dtype=np.float64)
         # print(temp)
         array = np.reshape(temp, (-1, 2))
-        #print(array)
+        # print(array)
 
         # clientMsg = "Message from Client:{}".format(message)
         # print(decoded_msg)
@@ -183,20 +185,23 @@ if __name__ == '__main__':
         #     start = time.time()
 
         update_map(mapbytes, points)
-
+        new_map = label_map(mapbytes, points)
         # Display map and robot pose, exiting gracefully if user closes it
         if not viz.display(x / 1000., y / 1000., theta, mapbytes):
             exit(0)
 
-        #raise exception()
-        #TODO find loc
-        if time.time()-start>30:
-            new_map = label_map(mapbytes, points)
+        # raise exception()
+        # TODO find loc
+        loc=[x / 1000., y / 1000.]
+        print(loc)
+        if time.time() - start > 30 or True:
             cv2.imwrite("new_map.png", new_map)
-            track = get_directions(new_map,loc,theta)
-            car_move_auto(track)
-            start=time.time()
+            new_loc = get_next_loc(new_map, loc, theta)
 
+            start = time.time()
+            reach_dest_flag = False
+        track = get_directions(new_loc, loc, theta)
+        Erez_func(track)
     # while True:
     #
     #     # Extract (quality, angle, distance) triples from current scan

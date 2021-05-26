@@ -336,7 +336,7 @@ void loop()
         //delay(50);
     }
     
-    md.setSpeeds(0, 0);
+    //md.setSpeeds(0, 0);
     //moveTurnTo180();
     
     

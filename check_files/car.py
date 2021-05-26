@@ -92,5 +92,8 @@ def terminate():
 
 if __name__ == '__main__':
     # car_move()
-    car_move_auto([('s',1,0),('w', 1,0),('s',1,0), ('w', 3,0), ('s', 3,0), ('p', 1,0)])
+    flag=True
+    while flag:
+        dta = Erez_Func()
+        car_move_auto([dta,('p',1,0)])
     terminate()
