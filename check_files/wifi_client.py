@@ -3,7 +3,7 @@ import select
 import pickle
 import numpy as np
 from adafruit_rplidar import RPLidar as Lidar
-
+from .car import car_move_auto
 
 serverAddress = "132.64.143.30"
 clientPort = 20001
@@ -35,9 +35,7 @@ def main():
             sent_data(new_scan.tobytes())
             if UDPClientSocket in readable:
                 data, addr = UDPClientSocket.recvfrom(1024)
-                temp = np.frombuffer(np.array(data), dtype=np.int)
-                new_data = np.reshape(temp, (-1, 2))
-                #print(new_data)
+                new_data = pickle.loads(data)
                 car_move_auto(new_data+('p', 1, 0))
     except KeyboardInterrupt:
         print('Stopping.')

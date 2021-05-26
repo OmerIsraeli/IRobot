@@ -1,5 +1,6 @@
 import socket
 import time
+import pickle
 import cv2
 from cv2 import dilate, erode
 from breezyslam.algorithms import RMHC_SLAM
@@ -72,7 +73,7 @@ def label_map(curr_map, points):
 
 
 def send_track(track):
-    UDPServerSocket.sendto(track.tobytes(), (clientAddress, clientPort))
+    UDPServerSocket.sendto(pickle.dumps(track), (clientAddress, clientPort))
 
 
 if __name__ == '__main__':
