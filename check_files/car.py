@@ -1,8 +1,9 @@
+
 import time
 import serial
 import keyboard
 
-ser = serial.Serial('COM8', 9600)
+ser = serial.Serial('/dev/ttyACM1', 9600)
 STOP = '1'
 PAUSE = 'p'
 
@@ -23,7 +24,7 @@ def car_move():
         if keyboard.is_pressed('p'):
             move('p')
         if keyboard.is_pressed(STOP):
-            time.sleep(0.7)
+            time.sleep(0.2)
             ser.write(STOP.encode('utf-8'))
 
 
@@ -54,10 +55,9 @@ def car_move_auto(ins):
         angle =str(ins[ind][2])
         print(key)
         ind += 1
-        time.sleep(1)
+        time.sleep(0.5)
         move_auto(key, timee, angle)
         if keyboard.is_pressed(STOP):
-            time.sleep(0.7)
             ser.write(STOP.encode('utf-8'))
 
 
@@ -93,7 +93,7 @@ def terminate():
 if __name__ == '__main__':
     # car_move()
     flag=True
-    while flag:
+    #while flag:
         #dta = Erez_Func()
-        car_move_auto([dta,('p',1,0)])
+    car_move_auto([('w',1,0),('w',1,0),('s',1,0),('p',1,0)])
     terminate()
