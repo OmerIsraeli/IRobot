@@ -69,6 +69,7 @@ def main():
             #             data = np.array((distances,angles))
             sent_data(new_scan.tobytes())
 
+
     except KeyboardInterrupt:
         print('Stopping.')
     lidar.stop()

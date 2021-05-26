@@ -18,25 +18,6 @@ BLOCKED = 3
 
 
 def get_directions(map, loc, theta):
-    """
-
-    :param map: map of {1,2,3} where 1 is empty, 2 is visited , 3 blocked
-    :param loc: my locations
-    :param theta: the direction of Rufus
-    :return: the track for rufus
-    """
-
-    # parsing the map areas
-    map_areas = parse_map(map, map.shape[0]//NUMBER_OF_ROWS, map.shape[1]//NUMBER_OF_COLS)
-
-    # find the area of the cur location of rufus in (i,j)
-    area_loc = find_my_area(loc,  map.shape[0]//NUMBER_OF_ROWS, map.shape[1]//NUMBER_OF_COLS)
-
-    # find the best areas for getting forward
-    next_loc_area = find_best_area(area_loc, map_areas)
-
-    # find our next loc
-    next_loc = find_next_loc(map, map_areas, area_loc, next_loc_area)
 
     # build track of rufus
     track = build_track(map_areas, loc, next_loc, theta)
@@ -152,3 +133,25 @@ def adjust_track(track):
             else:
                 new_track += [step]
     return new_track
+
+
+def get_next_loc(map,loc,theta):
+    """
+    :param map: map of {1,2,3} where 1 is empty, 2 is visited , 3 blocked
+    :param loc: my locations
+    :param theta: the direction of Rufus
+    :return: the new location of rufus
+    """
+
+    # parsing the map areas
+    map_areas = parse_map(map, map.shape[0]//NUMBER_OF_ROWS, map.shape[1]//NUMBER_OF_COLS)
+
+    # find the area of the cur location of rufus in (i,j)
+    area_loc = find_my_area(loc,  map.shape[0]//NUMBER_OF_ROWS, map.shape[1]//NUMBER_OF_COLS)
+
+    # find the best areas for getting forward
+    next_loc_area = find_best_area(area_loc, map_areas)
+
+    # find our next loc
+    next_loc = find_next_loc(map, map_areas, area_loc, next_loc_area)
+    return next_loc
