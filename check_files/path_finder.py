@@ -17,12 +17,18 @@ VISITED = 2
 BLOCKED = 3
 
 
-def get_directions(map, loc, theta):
+def get_directions(next_loc,loc, theta,track,idx_hor):
 
     # build track of rufus
-    track = build_track(map_areas, loc, next_loc, theta)
+    if len(track)==0:
+        d,angle=change_angle_to_hor(idx_hor,theta)
+        track =[(d,0.5,angle)]
+    elif idx_hor!= loc[0]<next_loc[0]:
+        d,angle=change_angle_to_ver(idx_hor,loc[1]<next_loc[1])
+        track = [(d, 0.5, angle)]
+    track += [('w',0.5,0)]
 
-    track = adjust_track(track)
+    # track = adjust_track(track)
     return track
 
 
@@ -66,6 +72,8 @@ def find_next_loc(map, map_areas, area_loc, next_loc_area):
             new_loc = [0, 0]
         else:
             new_loc = [0, int(map.shape[1] // NUMBER_OF_COLS) - 1]
+    new_loc=[new_loc_area[0]*int(map.shape[0] // NUMBER_OF_ROWS)+new_loc[0],next_loc_area[1]*int(map.shape[1] //
+                                                                                                 NUMBER_OF_COLS)+new_loc[1]]
     return new_loc
 
 
@@ -94,32 +102,32 @@ def change_angle_to_ver(idx_hor, idx_ver):
         else:
             return 'a', 90
 
-
-def build_track(map, loc, next_loc, theta):
-    idx_hor = loc[0] < next_loc[0]
-    idx_ver = loc[1] < next_loc[1]
-    track = []
-    d, angle = change_angle_to_hor(idx_hor, theta)
-    track += [d, 0, angle]
-    steps = 0
-    not_reached_dst = True
-    while steps < 30 and not_reached_dst:
-        for i in range(map.shape[1] // NUMBER_OF_COLS):
-            track += ['w', 1, 0]
-            loc = [loc[0] + 1, loc[1]]
-            steps += 1
-            if map[loc] == BLOCKED or loc[1] == next_loc[1]:
-                d, angle = change_angle_to_ver(idx_hor, idx_ver)
-                track += [d, 0, angle]
-                for j in range(map.shape[0] // NUMBER_OF_ROWS):
-                    track += ['w', 1, 0]
-                    loc = [loc[0], loc[1] + 1]
-                    if map[loc] == BLOCKED or loc[0] == next_loc[0]:
-                        break
-                break
-        if loc[0] == next_loc[0] and loc[1] == next_loc[1]:
-            not_reached_dst = False
-    return track+['w',1,0]
+#
+# def build_track(map, loc, next_loc, theta):
+#     idx_hor = loc[0] < next_loc[0]
+#     idx_ver = loc[1] < next_loc[1]
+#     track = []
+#
+#     track += [d, 0, angle]
+#     steps = 0
+#     not_reached_dst = True
+#     while steps < 30 and not_reached_dst:
+#         for i in range(map.shape[1] // NUMBER_OF_COLS):
+#             track += ['w', 1, 0]
+#             loc = [loc[0] + 1, loc[1]]
+#             steps += 1
+#             if map[loc] == BLOCKED or loc[1] == next_loc[1]:
+#                 d, angle = change_angle_to_ver(idx_hor, idx_ver)
+#                 track += [d, 0, angle]
+#                 for j in range(map.shape[0] // NUMBER_OF_ROWS):
+#                     track += ['w', 1, 0]
+#                     loc = [loc[0], loc[1] + 1]
+#                     if map[loc] == BLOCKED or loc[0] == next_loc[0]:
+#                         break
+#                 break
+#         if loc[0] == next_loc[0] and loc[1] == next_loc[1]:
+#             not_reached_dst = False
+#     return track+['w',1,0]
 
 
 def adjust_track(track):
