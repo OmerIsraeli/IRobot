@@ -26,6 +26,8 @@ def get_directions(next_loc,loc, theta,track,idx_hor):
     elif idx_hor!= loc[0]<next_loc[0]:
         d,angle=change_angle_to_ver(idx_hor,loc[1]<next_loc[1])
         track = [(d, 0.5, angle)]
+    else:
+        track= [track[-1]]
     track += [('w',0.5,0)]
 
     # track = adjust_track(track)
@@ -41,7 +43,7 @@ def parse_map(map, nor, noc):
 
 #TODO check if i have mistake
 def find_my_area(loc, nor, noc):
-    return [loc[0] // nor, loc[1] // noc]
+    return [int(loc[0] // nor), int(loc[1] // noc)]
 
 
 def find_best_area(area_loc, areas):
@@ -72,7 +74,7 @@ def find_next_loc(map, map_areas, area_loc, next_loc_area):
             new_loc = [0, 0]
         else:
             new_loc = [0, int(map.shape[1] // NUMBER_OF_COLS) - 1]
-    new_loc=[new_loc_area[0]*int(map.shape[0] // NUMBER_OF_ROWS)+new_loc[0],next_loc_area[1]*int(map.shape[1] //
+    new_loc=[next_loc_area[0]*int(map.shape[0] // NUMBER_OF_ROWS)+new_loc[0],next_loc_area[1]*int(map.shape[1] //
                                                                                                  NUMBER_OF_COLS)+new_loc[1]]
     return new_loc
 

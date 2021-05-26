@@ -8,13 +8,13 @@ from breezyslam.sensors import RPLidarA1 as LaserModel
 from roboviz import MapVisualizer
 import numpy as np
 from scipy.interpolate import interp1d
-from .path_finder import get_directions, get_next_loc
+from path_finder import get_directions, get_next_loc
 
 
-clientAddress = "132.64.143.30"
+clientAddress = "192.168.137.80"
 clientPort = 20001
 serverPort = 20002
-serverAddress = "127.0.0.1"
+serverAddress = "192.168.137.148"
 
 bufferSize = 4096
 # Create a datagram socket
@@ -93,7 +93,9 @@ if __name__ == '__main__':
     start = time.time()
     reach_dest_flag = True
     new_loc = None
-    track=None
+    track=[]
+    idx_hor=True
+    last_messege_time = time.time()
     while True:
         array = np.array([])
         message_full = UDPServerSocket.recvfrom(bufferSize)
@@ -124,16 +126,20 @@ if __name__ == '__main__':
         if not viz.display(x / 1000., y / 1000., theta, mapbytes):
             exit(0)
         # TODO find loc
-        loc=[x / 1000., y / 1000.]
+        loc=[int(x / 1000.), int(y / 1000.)]
         print(loc)
-        if time.time() - start > 30 or True:
+        if time.time() - start > 30 or reach_dest_flag:
             cv2.imwrite("new_map.png", new_map)
             new_loc = get_next_loc(new_map, loc, theta)
-            track = None
+            track = []
             start = time.time()
             reach_dest_flag = False
-        track = get_directions(new_loc, loc, theta)
-        send_track(track)
+            idx_hor=loc[0]<new_loc[0]
+        track = get_directions(new_loc, loc, theta,track,idx_hor)
+        if time.time() - last_messege_time > 2:
+            last_messege_time = time.time()
+            send_track(track)
+
     # Shut down the lidar connection
     lidar.stop()
     lidar.disconnect()
