@@ -10,7 +10,7 @@
 DualVNH5019MotorShield md;
 char incomingByte;
 
-#define TEST 1
+#define TEST 0
 #define MOTOR 1
 
 // encoder
@@ -169,7 +169,8 @@ void new_move(char c, int degrees){
 
   int detect = getDist();
   if(detect >= 0){
-    if(MOTOR) turn(turn_degrees[detect]);
+    Serial.println("fuck");
+    //if(MOTOR) turn(turn_degrees[detect]);
     if(TEST){
      if (TEST) Serial.println("I turn");
     }
@@ -180,25 +181,26 @@ void new_move(char c, int degrees){
     // forward
     if(c == 'w')
     {
-      md.setSpeeds(-1*spd,-1*spd);
+      md.setSpeeds(spd,spd);
     }
     //backward
     if(c == 's')
     {
-      md.setSpeeds(spd,spd);
+      md.setSpeeds(-1*spd,-1*spd);
     }
     //left
     if(c == 'a')
     {
-      turn(degrees);
+      old_turn(degrees);
     }
     if(c == 'd')
     {
-      turn(degrees);
+      old_turn(degrees);
     }
     if(c == 'p')
     {
       md.setBrakes(400, 400);
+      md.setSpeeds(0,0);
     }
     //stopIfFault()
   }
@@ -243,7 +245,7 @@ void old_turn(int degrees){
   md.setSpeeds(0,0);
 }
 
-///////////////// NEW TURN /////////////////////s
+///////////////// NEW TURN /////////////////////
 void turn(int degrees){
   long oldPosition  = -999;
   long start = myEnc.read();
@@ -276,6 +278,7 @@ void turn(int degrees){
       }
     }while((newPosition - start)/READS_PER_DEFREE > degrees);
   }
+  md.setBrakes(400,400);
   md.setSpeeds(0,0);
 }
 
@@ -326,12 +329,14 @@ void loop()
         String angle =Serial.readStringUntil('\n');
         int ang= angle.toInt();
         //input = Serial.read();
-        //Serial.println(direction_c);
-        //Serial.println(ang);
-        new_move(input,ang);
+        Serial.println(direction_c);
+        Serial.println(ang);
+        new_move(direction_c,ang);
+        
         //delay(50);
     }
     
+    md.setSpeeds(0, 0);
     //moveTurnTo180();
     
     

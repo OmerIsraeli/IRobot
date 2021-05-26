@@ -2,7 +2,7 @@ import time
 import serial
 import keyboard
 
-ser = serial.Serial('COM7', 9600)
+ser = serial.Serial('COM8', 9600)
 STOP = '1'
 PAUSE = 'p'
 
@@ -51,7 +51,7 @@ def car_move_auto(ins):
 
         key = ins[ind][0]
         timee = ins[ind][1]
-        angle =ins[ind][2]
+        angle =str(ins[ind][2])
         print(key)
         ind += 1
         time.sleep(1)
@@ -62,21 +62,28 @@ def car_move_auto(ins):
 
 
 def move_auto(key, timee, angle):
+    white_spaces = ','
+    new_line = '\n'
     key_was_pressed = False
     start = time.time()
     now = start
     if timee>0:
         while now - start < timee:
             if not key_was_pressed:
-                ser.write(key.encode('utf-8'))
+                ser.write(key.encode('utf-8') + white_spaces.encode('utf-8') + angle.encode('utf-8') + new_line.encode(
+                    'utf-8'))
+                print(key.encode('utf-8') + white_spaces.encode('utf-8') + angle.encode('utf-8') + new_line.encode(
+                    'utf-8'))
                 key_was_pressed = True
             now = time.time()
     else:
         if not key_was_pressed:
-            white_spaces = ","
-            ser.write(key.encode('utf-8')+white_spaces.encode('utf-8')+angle.encode('utf-8'))
+
+            ser.write(key.encode('utf-8')+white_spaces.encode('utf-8')+angle.encode('utf-8')+new_line.encode('utf-8'))
+            print(key.encode('utf-8')+white_spaces.encode('utf-8')+angle.encode('utf-8')+new_line.encode('utf-8'))
             key_was_pressed = True
-    ser.write(STOP.encode('utf-8'))
+    ser.write(STOP.encode('utf-8')+ white_spaces.encode('utf-8') + '0'.encode('utf-8') + new_line.encode(
+                    'utf-8'))
 
 
 def terminate():
@@ -85,5 +92,5 @@ def terminate():
 
 if __name__ == '__main__':
     # car_move()
-    car_move_auto([('w', 1), ('w', 3), ('s', 3), ('w', 3), ('s', 3), ('p', 1)])
+    car_move_auto([('s',1,0),('w', 1,0),('s',1,0), ('w', 3,0), ('s', 3,0), ('p', 1,0)])
     terminate()
