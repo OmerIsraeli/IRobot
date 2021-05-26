@@ -10,13 +10,13 @@
 DualVNH5019MotorShield md;
 char incomingByte;
 
-#define TEST 1
+#define TEST 0
 #define MOTOR 1
 
 // encoder
 #define encPin1 18
 #define encPin2 19
-#define READS_PER_DEFREE 18
+#define READS_PER_DEFREE 22
 
 // ultrasonic
 #define NUM_OF_SENSORS 3
@@ -169,7 +169,8 @@ void new_move(char c, int degrees){
 
   int detect = getDist();
   if(detect >= 0){
-    if(MOTOR) turn(turn_degrees[detect]);
+    Serial.println("fuck");
+    //if(MOTOR) turn(turn_degrees[detect]);
     if(TEST){
      if (TEST) Serial.println("I turn");
     }
@@ -180,21 +181,26 @@ void new_move(char c, int degrees){
     // forward
     if(c == 'w')
     {
-      md.setSpeeds(-1*spd,-1*spd);
+      md.setSpeeds(spd,spd);
     }
     //backward
     if(c == 's')
     {
-      md.setSpeeds(spd,spd);
+      md.setSpeeds(-1*spd,-1*spd);
     }
     //left
     if(c == 'a')
     {
-      turn(degrees);
+      old_turn(degrees);
+    }
+    if(c == 'd')
+    {
+      old_turn(degrees);
     }
     if(c == 'p')
     {
       md.setBrakes(400, 400);
+      md.setSpeeds(0,0);
     }
     //stopIfFault()
   }
@@ -219,9 +225,8 @@ void moveTurnTo180(){
 }
 
 
-
-
-void turn(int degrees){
+///////////////////////// OLD TURN ////////////////////////
+void old_turn(int degrees){
   long oldPosition  = -999;
   long start = myEnc.read();
   if (TEST) Serial.print("start = ");
@@ -240,6 +245,42 @@ void turn(int degrees){
   md.setSpeeds(0,0);
 }
 
+///////////////// NEW TURN /////////////////////
+void turn(int degrees){
+  long oldPosition  = -999;
+  long start = myEnc.read();
+  if (TEST) Serial.print("start = ");
+  if (TEST) Serial.println(start);
+  if(degrees > 0){
+    md.setSpeeds(-1*spd,spd);
+    long newPosition = -3;
+    do{
+      newPosition = myEnc.read();
+
+      if (newPosition != oldPosition) {
+      oldPosition = newPosition;
+      if (TEST) Serial.print((newPosition - start)/READS_PER_DEFREE);
+      if (TEST) Serial.println((newPosition - start)/READS_PER_DEFREE < degrees);
+      }
+    }while((newPosition - start)/READS_PER_DEFREE < degrees);
+  }
+  else {
+    md.setSpeeds(spd, -1*spd);
+
+    long newPosition = 3;
+    do{
+      newPosition = myEnc.read();
+
+      if (newPosition != oldPosition) {
+      oldPosition = newPosition;
+      if (TEST) Serial.print((newPosition - start)/READS_PER_DEFREE);
+      if (TEST) Serial.println((newPosition - start)/READS_PER_DEFREE < degrees);
+      }
+    }while((newPosition - start)/READS_PER_DEFREE > degrees);
+  }
+  md.setBrakes(400,400);
+  md.setSpeeds(0,0);
+}
 
 
 
@@ -290,10 +331,12 @@ void loop()
         //input = Serial.read();
         Serial.println(direction_c);
         Serial.println(ang);
-        //new_move(input,ang);
+        new_move(direction_c,ang);
+        
         //delay(50);
     }
     
+    md.setSpeeds(0, 0);
     //moveTurnTo180();
     
     
