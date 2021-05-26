@@ -37,7 +37,8 @@ def main():
                 data, addr = UDPClientSocket.recvfrom(1024)
                 temp = np.frombuffer(np.array(data), dtype=np.int)
                 new_data = np.reshape(temp, (-1, 2))
-                print(new_data)
+                #print(new_data)
+                car_move_auto(new_data+('p', 1, 0))
     except KeyboardInterrupt:
         print('Stopping.')
     lidar.stop()

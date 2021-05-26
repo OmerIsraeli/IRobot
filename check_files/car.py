@@ -94,6 +94,6 @@ if __name__ == '__main__':
     # car_move()
     flag=True
     while flag:
-        dta = Erez_Func()
+        #dta = Erez_Func()
         car_move_auto([dta,('p',1,0)])
     terminate()
