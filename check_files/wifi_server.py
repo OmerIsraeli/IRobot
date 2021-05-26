@@ -1,6 +1,5 @@
 import socket
 import time
-import pickle
 import cv2
 from cv2 import dilate, erode
 from breezyslam.algorithms import RMHC_SLAM
@@ -9,25 +8,17 @@ from roboviz import MapVisualizer
 import numpy as np
 from scipy.interpolate import interp1d
 from .path_finder import get_directions, get_next_loc
-from .car import car_move_auto, terminate
-
-# from roboviz import MapVisualizer
 
 
-localIP = "192.168.137.148"
-localIP_IMG = "127.0.0.1"
-localPort = 20001
+clientAddress = "132.64.143.30"
+clientPort = 20001
+serverPort = 20002
+serverAddress = "127.0.0.1"
 
 bufferSize = 4096
-msgFromServer = "Hello UDP Client"
-bytesToSend = str.encode(msgFromServer)
 # Create a datagram socket
 UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-# Bind to address and ip
-UDPServerSocket.bind((localIP, localPort))
-print("UDP server up and listening")
-# Listen for incoming datagrams
-
+UDPServerSocket.bind((serverAddress, serverPort))
 
 MAP_SIZE_PIXELS = 500
 MAP_SIZE_METERS = 10
@@ -49,34 +40,6 @@ W = 640
 H = 480
 
 
-def b2img(mapbytes, pixels=MAP_SIZE_PIXELS):
-    map = np.zeros((pixels, pixels))
-    for i in range(pixels):
-        for j in range(pixels):
-            map[i][j] = mapbytes[i * pixels + j]
-    return map
-
-
-def send_img(img):
-    UDPServerSocket_IMG = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-    UDPServerSocket_IMG.sendto(img, (localIP_IMG, localPort_IMG))
-
-
-def _process_scan(raw):
-    '''Processes input raw data and returns measurment data'''
-    new_scan = bool(raw[0] & 0b1)
-    inversed_new_scan = bool((raw[0] >> 1) & 0b1)
-    quality = raw[0] >> 2
-    if new_scan == inversed_new_scan:
-        raise RPLidarException('New scan flags mismatch')
-    check_bit = raw[1] & 0b1
-    if check_bit != 1:
-        raise RPLidarException('Check bit not equal to 1')
-    angle = ((raw[1] >> 1) + (raw[2] << 7)) / 64.
-    distance = (raw[3] + (raw[4] << 8)) / 4.
-    return new_scan, quality, angle, distance
-
-
 def update_map(curr_map, points):
     for p in points:
         print('p is ', p)
@@ -90,7 +53,6 @@ THRESH = 129
 
 
 def label_map(curr_map, points):
-    # labels = {b'\x00': EMPTY, b'\x7F': VISITED, BEEN_THERE: BLOCKED}
     curr = np.array(curr_map)
     curr = curr.reshape((MAP_SIZE_PIXELS, MAP_SIZE_PIXELS))
     cv2.imwrite("Original.png", curr)
@@ -109,120 +71,68 @@ def label_map(curr_map, points):
     return new_map
 
 
+def send_track(track):
+    UDPServerSocket.sendto(track.tobytes(), (clientAddress, clientPort))
+
+
 if __name__ == '__main__':
-
     # Connect to Lidar unit
-
     # Create an RMHC SLAM object with a laser model and optional robot model
     slam = RMHC_SLAM(LaserModel(), MAP_SIZE_PIXELS, MAP_SIZE_METERS)
     # Set up a SLAM display
     viz = MapVisualizer(MAP_SIZE_PIXELS, MAP_SIZE_METERS, 'SLAM')
     # Initialize an empty trajectory
     trajectory = []
-
     # Initialize empty map
     mapbytes = bytearray(MAP_SIZE_PIXELS * MAP_SIZE_PIXELS)
-
     points = []
-    # Create an iterator to collect scan data from the RPLidar
-    # iterator = lidar.iter_scans()
-
     # We will use these to store previous scan in case current scan is inadequate
     previous_distances = None
     previous_angles = None
     start = time.time()
     reach_dest_flag = True
     new_loc = None
+    track=None
     while True:
-        # size = int(UDPServerSocket.recv(6))
-        # print(size)
         array = np.array([])
-        # while size > len(array):
         message_full = UDPServerSocket.recvfrom(bufferSize)
         message = message_full[0]
         address = message_full[1]
-        # print(message)
         temp = np.frombuffer(np.array(message), dtype=np.float64)
-        # print(temp)
         array = np.reshape(temp, (-1, 2))
-        # print(array)
-
-        # clientMsg = "Message from Client:{}".format(message)
-        # print(decoded_msg)
-        # scan_data = [0] * 360
         # Update SLAM with current Lidar scan and scan angles if adequate
         if len(array) > MIN_SAMPLES:
-            # print("wowwwww")
             distances = [item[1] for item in array]
             angles = [item[0] for item in array]
-
             f = interp1d(angles, distances, fill_value='extrapolate')
             distances = list(f(np.arange(360)))  # slam.update wants a list
-            # istances = array[0]
-            # angles = array[1]
-            # print("distances: ",distances,"\n angles: ",angles,"\n")
-            # slam.update(distances, scan_angles_degrees=angles)
             slam.update(distances)
             previous_distances = distances.copy()
             previous_angles = angles.copy()
-
         # If not adequate, use previous
         elif previous_distances is not None:
             slam.update(previous_distances, scan_angles_degrees=previous_angles)
-
         # Get current robot position and add it to path
         x, y, theta = slam.getpos()
         points.append((np.floor(y * mm_to_px), np.floor(x * mm_to_px)))
         # Get current map bytes as grayscale
         slam.getmap(mapbytes)
-        # print(mapbytes)
-        # for byte in mapbytes:
-        #     if byte != 127:
-        #         #print("erez")
-        # img=b2img(mapbytes,MAP_SIZE_PIXELS)
-        # if(time.time()-start>2):
-        #     send_img(img)
-        #     start = time.time()
-
         update_map(mapbytes, points)
         new_map = label_map(mapbytes, points)
         # Display map and robot pose, exiting gracefully if user closes it
         if not viz.display(x / 1000., y / 1000., theta, mapbytes):
             exit(0)
-
-        # raise exception()
         # TODO find loc
         loc=[x / 1000., y / 1000.]
         print(loc)
         if time.time() - start > 30 or True:
             cv2.imwrite("new_map.png", new_map)
             new_loc = get_next_loc(new_map, loc, theta)
-
+            track = None
             start = time.time()
             reach_dest_flag = False
         track = get_directions(new_loc, loc, theta)
-        Erez_func(track)
-    # while True:
-    #
-    #     # Extract (quality, angle, distance) triples from current scan
-    #     items = [item for item in next(iterator)]
-
+        send_track(track)
     # Shut down the lidar connection
     lidar.stop()
     lidar.disconnect()
-
-"""
-Consume LIDAR measurement file and create an image for display.
-
-Adafruit invests time and resources providing this open source code.
-Please support Adafruit and open source hardware by purchasing
-products from Adafruit!
-
-Written by Dave Astels for Adafruit Industries
-Copyright (c) 2019 Adafruit Industries
-Licensed under the MIT license.
-
-All text above must be included in any redistribution.
-"""
-
-scan_data = [0] * 360

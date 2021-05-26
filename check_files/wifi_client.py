@@ -32,21 +32,16 @@ def main():
             readable, writable, exceptional = select.select([UDPClientSocket],
                                                             [UDPClientSocket],
                                                             [UDPClientSocket])
-            if UDPClientSocket in writable:
-                sent_data(new_scan.tobytes())
+            sent_data(new_scan.tobytes())
             if UDPClientSocket in readable:
                 data, addr = UDPClientSocket.recvfrom(1024)
-                print(data)
+                temp = np.frombuffer(np.array(data), dtype=np.int)
+                new_data = np.reshape(temp, (-1, 2))
+                print(new_data)
     except KeyboardInterrupt:
         print('Stopping.')
     lidar.stop()
     lidar.disconnect()
-
-
-def concat_dist_angles(distances, angles):
-    arr = (distances, angles)
-    data_string = pickle.dumps(arr)
-    return data_string
 
 
 if __name__ == '__main__':
